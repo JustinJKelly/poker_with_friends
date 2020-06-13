@@ -43,16 +43,17 @@
             </ul>
         </div>
     </nav>
-    <center> <h1> Play Poker With Friends </h1> </center>
-    <br/>
-    <div class="container"> 
-        <div class="row">
-            {% for card in cards %}
-                <img src = "{% static card %}"></img>
-                <br/>
-            {% endfor %}
+    {% block content %}
+        <center> <h1> Play Poker With Friends </h1> </center>
+        <br/>
+        <div class="container"> 
+            <div class="row">
+                {% for card in cards %}
+                    <img src = "{% static card %}"></img>
+                    <br/>
+                {% endfor %}
+            </div>
         </div>
-    </div>
-
+    {% endblock %}
   </body>
 </html>

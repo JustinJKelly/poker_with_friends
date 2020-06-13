@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+    {% load static %}
+    {% block content %}
+        <style>
+            select {
+                width:25%;
+            }
+        </style>
+        <br/>
+        <center> <h2> Choose Table </h2> </center>
+        <div class="container">
+            <center>
+                <form method="post" style="font-size:18px;">
+                    {% csrf_token %}
+                    {{ form }}
+                    <input style="font-size:14px;" class="btn btn-primary" type="submit" value="Submit">
+                </form>
+            </center>
+        </div>
+
+
+    {% endblock %}

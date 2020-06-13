@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'channels',
+    'channels_presence',
 ]
 
 MIDDLEWARE = [
@@ -72,6 +73,14 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'poker_with_friends.wsgi.application'
 ASGI_APPLICATION = "poker_with_friends.routing.application"
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
 
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases

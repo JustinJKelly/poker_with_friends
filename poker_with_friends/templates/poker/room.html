@@ -1,0 +1,86 @@
+<!-- chat/templates/chat/room.html -->
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Chat Room</title>
+
+    <style>
+        .sidenav {
+            height: 100%;
+            width: 250px;
+            position: fixed;
+            z-index: 1;
+            top: 0;
+            left: 0;
+            background-color: #111;
+            overflow-x: hidden;
+            padding-top: 20px;
+            border-style: solid double;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidenav">
+        <h4 style="color:white;"> Chat </h4>
+        <textarea id="chat-log" overflow="scroll" cols="30" rows="25"></textarea><br>
+        <input id="chat-message-input" type="text" size="30"><br>
+        <input id="chat-message-submit" type="button" value="Send">
+    </div>
+    <div>
+        <center> 
+            <h2>{{ room_name}} : {{username}}</h2> 
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <p style="position:fixed; left:400px;top:250px;">ede</p>
+            <p style="position:fixed; left:1150px;top:250px;">ede</p>
+            <img src="{% static 'img/poker_table.png' %}" style="margin-left:240px;"></img>
+
+        </center>
+        
+    </div>
+
+    {{ room_name|json_script:"room-name" }}
+    <script>
+        const roomName = JSON.parse(document.getElementById('room-name').textContent);
+
+        const chatSocket = new WebSocket(
+            'ws://'
+            + window.location.host
+            + '/ws/chat/'
+            + roomName
+            + '/'
+        );
+
+        chatSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            document.querySelector('#chat-log').value += ( data.username + ":" + data.message + '\n');
+        };
+
+        chatSocket.onclose = function(e) {
+            console.error('Chat socket closed unexpectedly');
+        };
+
+        document.querySelector('#chat-message-input').focus();
+        document.querySelector('#chat-message-input').onkeyup = function(e) {
+            if (e.keyCode === 13) {  // enter, return
+                document.querySelector('#chat-message-submit').click();
+            }
+        };
+
+        document.querySelector('#chat-message-submit').onclick = function(e) {
+            const messageInputDom = document.querySelector('#chat-message-input');
+            const message = messageInputDom.value;
+            chatSocket.send(JSON.stringify({
+                'message': message,
+                'username': "{{username}}"
+            }));
+            messageInputDom.value = '';
+        };
+    </script>
+</body>
+</html>

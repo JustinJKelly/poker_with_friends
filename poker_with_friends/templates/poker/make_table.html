@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+    {% load static %}
+    {% block content %}
+
+    <style> 
+        input {
+            width:25%;
+        }
+    </style>
+    <div class="container" style="font-size:22px;">
+        <div class="row">
+            <div class="col">
+                <br/>
+                <h3> Make Your Table</h3>
+                <br/>
+                <form method="post" style="font-size:18px;">
+                    {% csrf_token %}
+                    {% for field in form %}
+                        <b style="font-size:16px;">{{field.label}}</b>
+                        {{field}}
+                        <br/>
+                        <br/>
+                    {% endfor %}
+                    <input class="btn btn-primary" style="width:10%;" type="submit" value="Submit">
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {% endblock %}
