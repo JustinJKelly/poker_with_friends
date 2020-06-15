@@ -26,7 +26,31 @@ class Table(models.Model):
     max_players = models.IntegerField(default=2)
     current_num_players = models.IntegerField(default=0)
     access_code = models.CharField(max_length=16,null=False)
+    player1 = models.CharField(max_length=16, default="none")
+    player2 = models.CharField(max_length=16, default="none")
+    player1_current_stack = models.IntegerField(null=False,default=0)
+    player2_current_stack = models.IntegerField(null=False,default=0)
+    player1_last_bet_amount = models.IntegerField(null=False,default=0)
+    player2_last_bet_amount = models.IntegerField(null=False,default=0)
+    player1_turn = models.BooleanField(default=True)
+    player2_turn = models.BooleanField(default=False)
+    dealer = models.CharField(max_length=16,default="none")
+    player1_last_move = models.CharField(max_length=16,default="none")
+    player2_last_move = models.CharField(max_length=16,default="none")
+    player1_card1 = models.CharField(max_length=16,default="none")
+    player1_card2 = models.CharField(max_length=16,default="none")
+    player2_card1 = models.CharField(max_length=16,default="none")
+    player2_card2 = models.CharField(max_length=16,default="none")
+    flop_card1 = models.CharField(max_length=16,default="none")
+    flop_card2 = models.CharField(max_length=16,default="none")
+    flop_card3 = models.CharField(max_length=16,default="none")
+    pot_size = models.IntegerField(default=0)
+    turn_card = models.CharField(max_length=16,default="none")
+    river_card = models.CharField(max_length=16,default="none")
+    
+    
+    
     
     def __str__(self):
-        return self.table_id
+        return self.table_name
     

@@ -17,3 +17,5 @@ class JoinTableForm(forms.Form):
     chosen_table = forms.ChoiceField(choices=CHOICES, widget=forms.Select, label='')
     username = forms.CharField(label="Choose Username")
     access_code = forms.CharField(label="Enter access code")
+    
+    

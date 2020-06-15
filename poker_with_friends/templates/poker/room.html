@@ -19,30 +19,114 @@
             padding-top: 20px;
             border-style: solid double;
         }
+        .card_img {
+            width:45px;
+            height:60px;
+        }
+        body {
+            background-image: url("https://media.giphy.com/media/3AMRa6DRUhMli/source.gif");
+        }
     </style>
 </head>
-<body>
-    <div class="sidenav">
-        <h4 style="color:white;"> Chat </h4>
-        <textarea id="chat-log" overflow="scroll" cols="30" rows="25"></textarea><br>
-        <input id="chat-message-input" type="text" size="30"><br>
-        <input id="chat-message-submit" type="button" value="Send">
-    </div>
+<!--
+        context['card1'] = table.player1_card1
+        context['card2'] = table.player1_card2
+        context['my_username'] = table.player1
+        context['opp_username'] = table.player2
+        context['my_last_bet_amount'] = table.player1_last_bet_amount
+        context['opp_last_bet_amount'] = table.player2_last_bet_amount
+        context['my_curr_stack'] = table.player1_current_stack
+        context['opp_curr_stack'] = table.player2_current_stack
+        context['my_last_bet_amount'] = table.player1_last_bet_amount
+        context['opp_last_bet_amount'] = table.player2_last_bet_amount
+        context['my_turn'] = table.player1_turn
+        context['opp_turn'] = table.player2_turn
+        context['room_name'] = room_name
+        context['username'] = username
+        context['starting_stack'] = table.starting_stack
+        context['big_blind'] = table.big_blind
+        context['small_blind'] = float(table.big_blind/2)
+        context['decision_time'] = table.decision_time
+        context['flop_card1'] = table.flop_card1
+        context['flop_card2'] = table.flop_card2
+        context['flop_card3'] = table.flop_card3
+        context['pot_size'] = table.pot_size
+        context['turn_card'] = table.turn_card
+        context['river_card'] = table.river_card
+        context['dealer'] = "Yes"/"No"
+-->
+
+<body id="body">
     <div>
         <center> 
-            <h2>{{ room_name}} : {{username}}</h2> 
-            <br/>
-            <br/>
-            <br/>
-            <br/>
-            <br/>
-            <p style="position:fixed; left:400px;top:250px;">ede</p>
-            <p style="position:fixed; left:1150px;top:250px;">ede</p>
-            <img src="{% static 'img/poker_table.png' %}" style="margin-left:240px;"></img>
-
+            <h2 style="color:white;"> Waiting for other player </h2>
         </center>
-        
     </div>
+    <div id="game_on" hidden>
+        <div class="sidenav">
+            <h4 style="color:white;"> Chat </h4>
+            <textarea id="chat-log" overflow="scroll" cols="30" rows="25"></textarea><br>
+            <input id="chat-message-input" type="text" size="30"><br>
+            <input id="chat-message-submit" type="button" value="Send">
+        </div>
+        <div>
+            <center style="margin-left:200px;"> 
+                <h2>{{ room_name}} : {{username}}</h2> 
+                <p> Blinds: {{small_blind}}/{{big_blind}} </p>
+                <p> Decision Time: {{decision_time}} </p>
+                <br/>
+                <br/>
+                <br/>
+            </center>
+            <!--Table-->
+            <img style="margin-left:500px;" src="{% static 'img/poker_table.png' %}" ></img>
+            <img style="position:fixed;left:700px; margin-top:100px;" id="flop1" class="card_img" src="{% static 'img/2_of_hearts.png' %}"></img>
+            <img style="position:fixed;left:750px; margin-top:100px;" id="flop2" class="card_img" src="{% static 'img/2_of_diamonds.png' %}"></img>
+            <img style="position:fixed;left:800px; margin-top:100px;" id="flop3" class="card_img" src="{% static 'img/2_of_clubs.png' %}"></img>
+            <img style="position:fixed;left:850px; margin-top:100px;" id="turn"  class="card_img" src="{% static 'img/2_of_clubs.png' %}"></img>
+            <img style="position:fixed;left:900px;margin-top:100px;" id="river" class="card_img" src="{% static 'img/2_of_clubs.png' %}"></img>
+            <b style="font-size:18px; color:white;position:fixed;left:780px;margin-top:180px;" id="pot">Pot:</b>
+            <b style="font-size:18px; color:white;position:fixed;left:850px;margin-top:180px;" id="pot_size">0</b>
+            <!--my poker info-->
+            <div style="position:fixed; left:350px;top:250px;">
+                <p> {{username}} </p>
+                <p> stack : {{my_curr_stack}} </p>
+                <div class="row">
+                    <img class="card_img" id="card1" src="{% static card1 %}"></img>
+                    <img class="card_img" id="card2" src="{% static card2 %}"></img>
+                </div>
+            </div>
+            <!--opp poker info-->
+            <div style="position:fixed; left:1200px;top:250px;">
+                <p id="opp_username"> {{opp_username}} </p>
+                <p> stack : {{opp_curr_stack}} </p>
+            </div>
+
+            {% if player_turn %}
+                <script>
+                    changeHidden();
+                </script>
+            {% endif %}
+            <div hidden id="poker_move">
+                <center>
+                    <form method="post">
+                        {% csrf_token %}
+                        <select name="check_bet_call" id="check_bet_call">
+                            <option value="check">Check</option>
+                            <option value="bet">Bet</option>
+                            <option value="call">Call</option>
+                        </select>
+                        <label for="bet_amount">Bet Amount:</label>
+                        <input type="text" placeholder="Enter bet" name="bet_amount">
+                        <input class="btn btn-primary" type="submit" id="decision_made"  value="Submit">
+                    </form>
+                </center>
+            </div>
+        </div>
+    </div>
+    <center hidden id="opp_move_waiting">
+        <p style="font-size:18px;"> Waiting for opp to make decision...</p>
+    </center>
 
     {{ room_name|json_script:"room-name" }}
     <script>
@@ -52,18 +136,95 @@
             'ws://'
             + window.location.host
             + '/ws/chat/'
-            + roomName
-            + '/'
+            + roomName 
+            + '/{{username}}/'
         );
+
+        const newPlayerSocket = new WebSocket(
+            'ws://'
+            + window.location.host
+            + '/ws/poker/'
+            + roomName
+            + '/newUserConnected/{{username}}/'
+        );
+
+       /* const chatSocketBetCheckCall = new WebSocket(
+            'ws://'
+            + window.location.host
+            + '/ws/poker/'
+            + roomName
+            + '/checkBetCall/'
+        );
+
+        const startGameSocket = new WebSocket(
+            'ws://'
+            + window.location.host
+            + '/ws/poker/'
+            + roomName
+            + '/start/'
+        );
+
+        const newPlayerSocket = new WebSocket(
+            'ws://'
+            + window.location.host
+            + '/ws/poker/'
+            + roomName
+            + '/newPlayerEntered/'
+        );
+
+        newPlayerSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            alert("here");
+            location.reload();
+        };*/
+
+        newPlayerSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            alert(data.username + "    {{username}}");
+
+            alert(data.game_on);
+            if (data.game_on == "yes") {
+                document.querySelector('#body').style.backgroundImage = "none";
+                document.querySelector("#game_on").hidden = false;
+
+                alert("{{my_turn}}");
+                if ("{{my_turn}}" == "True") {
+                    document.querySelector('#poker_move').hidden = false;
+                    document.querySelector('#opp_move_waiting').hidden = true;
+                } else {
+                    document.querySelector('#opp_move_waiting').hidden = false;
+                    document.querySelector('#poker_move').hidden = true;
+                }
+            }
+            if (data.username != "{{username}}") {
+                document.querySelector('#opp_username').innerHTML = data.username;
+            }
+            //document.querySelector('#poker_move').hidden=false;
+        };
+
+        newPlayerSocket.onopen = function() {
+            if ("{{game_on}}" == "game_on") {
+                alert("Game on");
+                newPlayerSocket.send(JSON.stringify({
+                    "game_on":"game_on",
+                    "username": "{{username}}",
+                }));
+            }
+        }
+
 
         chatSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
-            document.querySelector('#chat-log').value += ( data.username + ":" + data.message + '\n');
+            document.querySelector('#chat-log').value += ( data.username + ": " + data.message + '\n');
+        };
+
+        /*startGameSocket.onmessage = function(e) {
+            document.querySelector('#start_game').hidden=true;
         };
 
         chatSocket.onclose = function(e) {
             console.error('Chat socket closed unexpectedly');
-        };
+        };*/
 
         document.querySelector('#chat-message-input').focus();
         document.querySelector('#chat-message-input').onkeyup = function(e) {
@@ -77,10 +238,21 @@
             const message = messageInputDom.value;
             chatSocket.send(JSON.stringify({
                 'message': message,
-                'username': "{{username}}"
+                'username': "{{username}}",
             }));
             messageInputDom.value = '';
         };
+
+        document.querySelector('#poker_move').onclick = function(e) {
+            PokerSocket.send(JSON.stringify({
+                "username": "{{username}}",
+            }));
+        };
+
+        function changeHidden() {
+            document.querySelector('#poker_move').hidden=false;
+        }
+
     </script>
 </body>
 </html>
