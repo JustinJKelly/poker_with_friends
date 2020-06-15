@@ -109,17 +109,15 @@
             {% endif %}
             <div hidden id="poker_move">
                 <center>
-                    <form method="post">
-                        {% csrf_token %}
-                        <select name="check_bet_call" id="check_bet_call">
-                            <option value="check">Check</option>
-                            <option value="bet">Bet</option>
-                            <option value="call">Call</option>
-                        </select>
-                        <label for="bet_amount">Bet Amount:</label>
-                        <input type="text" placeholder="Enter bet" name="bet_amount">
-                        <input class="btn btn-primary" type="submit" id="decision_made"  value="Submit">
-                    </form>
+                    <select name="check_bet_call" id="check_bet_call">
+                        <option value="check">Check</option>
+                        <option value="bet">Bet</option>
+                        <option value="call">Call</option>
+                    </select>
+                    <label for="bet_amount">Bet Amount:</label>
+                    <input type="text" placeholder="Enter bet" name="bet_amount" id="bet_amount">
+                    <p id="timer">Time Remaining:<b id="time_remaining"></b></p>
+                    <input class="btn btn-primary" type="submit" id="decision_made"  value="Submit">
                 </center>
             </div>
         </div>
@@ -148,6 +146,14 @@
             + '/newUserConnected/{{username}}/'
         );
 
+        const playerDecisionSocket = new WebSocket(
+            'ws://'
+            + window.location.host
+            + '/ws/poker/'
+            + roomName
+            + '/playerDecision/{{username}}/'
+        );
+
        /* const chatSocketBetCheckCall = new WebSocket(
             'ws://'
             + window.location.host
@@ -174,23 +180,27 @@
 
         newPlayerSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
-            alert("here");
+           //alert("here");
             location.reload();
         };*/
 
         newPlayerSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
-            alert(data.username + "    {{username}}");
+           //alert(data.username + "    {{username}}");
 
-            alert(data.game_on);
+           //alert(data.game_on);
             if (data.game_on == "yes") {
                 document.querySelector('#body').style.backgroundImage = "none";
                 document.querySelector("#game_on").hidden = false;
 
-                alert("{{my_turn}}");
+               //alert("{{my_turn}}");
                 if ("{{my_turn}}" == "True") {
                     document.querySelector('#poker_move').hidden = false;
                     document.querySelector('#opp_move_waiting').hidden = true;
+                    var fifteenSeconds = 30;//"{{decision_time}}";
+                    display = document.querySelector('#time_remaining');
+                    startTimer(fifteenSeconds, display);
+
                 } else {
                     document.querySelector('#opp_move_waiting').hidden = false;
                     document.querySelector('#poker_move').hidden = true;
@@ -204,7 +214,7 @@
 
         newPlayerSocket.onopen = function() {
             if ("{{game_on}}" == "game_on") {
-                alert("Game on");
+               //alert("Game on");
                 newPlayerSocket.send(JSON.stringify({
                     "game_on":"game_on",
                     "username": "{{username}}",
@@ -243,14 +253,46 @@
             messageInputDom.value = '';
         };
 
-        document.querySelector('#poker_move').onclick = function(e) {
-            PokerSocket.send(JSON.stringify({
-                "username": "{{username}}",
-            }));
-        };
+        function startTimer(duration, display) {
+            var timer = duration, minutes, seconds;
+            setInterval(function () {
+                minutes = parseInt(timer / 60, 10);
+                seconds = parseInt(timer % 60, 10);
 
-        function changeHidden() {
-            document.querySelector('#poker_move').hidden=false;
+                minutes = minutes < 10 ? "0" + minutes : minutes;
+                seconds = seconds < 10 ? "0" + seconds : seconds;
+
+                display.textContent = minutes + ":" + seconds;
+
+                if (--timer < 0) {
+                    timer = duration;
+                   //alert("time up");
+                }
+            }, 1000);
+        }
+
+        document.querySelector('#decision_made').onclick = function(e) {
+            const timer = document.querySelector('#timer');
+            const decision_selector = document.querySelector('#check_bet_call');
+            const bet_amount_input = document.querySelector('#bet_amount');
+            if (bet_amount_input.value == null) {
+                bet_amount = 0;
+            } else {
+                bet_amount = bet_amount_input.value;
+            }
+
+           //alert(decision_selector.options[decision_selector.selectedIndex].value + " " + bet_amount);
+
+            playerDecisionSocket.send(JSON.stringify({
+                'sentby': "{{username}}",
+                'decision': decision_selector.options[decision_selector.selectedIndex].value,
+                'betamount': bet_amount,
+            }));
+        }
+
+        playerDecisionSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            alert("sent by:" + data.sentby + "  decision:" + data.decision + "  bet:" + data.bet_amount);
         }
 
     </script>
