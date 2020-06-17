@@ -78,7 +78,6 @@ class NewPlayerConsumer(WebsocketConsumer):
 
     # Receive message from WebSocket
     def receive(self, text_data):
-        print("HERE222")
         text_data_json = json.loads(text_data)
         username = text_data_json['username']
 
@@ -92,20 +91,20 @@ class NewPlayerConsumer(WebsocketConsumer):
         )
 
     def game_on(self, event):
-        #username = event['username']
+        username = event['username']
         users = Room.objects.get(channel_name="poker_game").get_users()
         print(users)
         print("help")
         if (len(users) == 2):
             print("help2")
             self.send(text_data=json.dumps({
-                'username': self.username_connected,
+                'username': username,
                 'game_on':'yes'
             }))
         else:
             # Send message to room group
             self.send(text_data=json.dumps({
-                'username': self.username_connected,
+                'username': username,
                 'game_on':'no'
             }))
             
@@ -140,6 +139,7 @@ class PlayerDecisionConsumer(WebsocketConsumer):
         sentby = text_data_json['sentby']
         betamount = text_data_json['betamount']
         decision = text_data_json['decision']
+        print(betamount)
 
         # Send message to room group
         async_to_sync(self.channel_layer.group_send)(

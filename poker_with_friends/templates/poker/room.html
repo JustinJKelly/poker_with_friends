@@ -4,7 +4,7 @@
 <html>
 <head>
     <meta charset="utf-8"/>
-    <title>Chat Room</title>
+    <title>Poker with Friends</title>
 
     <style>
         .sidenav {
@@ -80,13 +80,17 @@
             </center>
             <!--Table-->
             <img style="margin-left:500px;" src="{% static 'img/poker_table.png' %}" ></img>
-            <img style="position:fixed;left:700px; margin-top:100px;" id="flop1" class="card_img" src="{% static 'img/2_of_hearts.png' %}"></img>
-            <img style="position:fixed;left:750px; margin-top:100px;" id="flop2" class="card_img" src="{% static 'img/2_of_diamonds.png' %}"></img>
-            <img style="position:fixed;left:800px; margin-top:100px;" id="flop3" class="card_img" src="{% static 'img/2_of_clubs.png' %}"></img>
-            <img style="position:fixed;left:850px; margin-top:100px;" id="turn"  class="card_img" src="{% static 'img/2_of_clubs.png' %}"></img>
-            <img style="position:fixed;left:900px;margin-top:100px;" id="river" class="card_img" src="{% static 'img/2_of_clubs.png' %}"></img>
+            <img hidden style="position:fixed;left:700px; margin-top:100px;" id="flop1" class="card_img" src="{% static 'img/2_of_hearts.png' %}"></img>
+            <img hidden style="position:fixed;left:750px; margin-top:100px;" id="flop2" class="card_img" src="{% static 'img/2_of_diamonds.png' %}"></img>
+            <img hidden style="position:fixed;left:800px; margin-top:100px;" id="flop3" class="card_img" src="{% static 'img/2_of_clubs.png' %}"></img>
+            <img hidden style="position:fixed;left:850px; margin-top:100px;" id="turn"  class="card_img" src="{% static 'img/2_of_clubs.png' %}"></img>
+            <img hidden style="position:fixed;left:900px;margin-top:100px;" id="river" class="card_img" src="{% static 'img/2_of_clubs.png' %}"></img>
             <b style="font-size:18px; color:white;position:fixed;left:780px;margin-top:180px;" id="pot">Pot:</b>
             <b style="font-size:18px; color:white;position:fixed;left:850px;margin-top:180px;" id="pot_size">0</b>
+            <img hidden id="my_chips_bet_img" class="card_img" style="position:fixed;margin-top:150px;left:570px;width:40px;height:40px;" src="{% static 'img/poker_chips.png' %}"></img>
+            <b hidden id="my_chips_bet" style="position:fixed;left:620px;margin-top:150px;font-size:18px; color:black;">0</b>
+            <img hidden id="opp_chips_bet_img" style="position:fixed;left:1060px;margin-top:150px;width:40px;height:40px;" class="card_img" src="{% static 'img/poker_chips.png' %}"></img>
+            <b hidden id="opp_chips_bet" style="position:fixed;left:1040px;margin-top:150px;font-size:18px; color:black;">0</b>
             <!--my poker info-->
             <div style="position:fixed; left:350px;top:250px;">
                 <p> {{username}} </p>
@@ -102,11 +106,6 @@
                 <p> stack : {{opp_curr_stack}} </p>
             </div>
 
-            {% if player_turn %}
-                <script>
-                    changeHidden();
-                </script>
-            {% endif %}
             <div hidden id="poker_move">
                 <center>
                     <select name="check_bet_call" id="check_bet_call">
@@ -154,63 +153,72 @@
             + '/playerDecision/{{username}}/'
         );
 
-       /* const chatSocketBetCheckCall = new WebSocket(
-            'ws://'
-            + window.location.host
-            + '/ws/poker/'
-            + roomName
-            + '/checkBetCall/'
-        );
+        var decision_time = 30;//"{{decision_time}}";
+        var opp_last_move = null;
+        var my_last_move = null;
+        const display = document.querySelector('#time_remaining');
+        const body = document.querySelector('#body');
+        const game_on = document.querySelector("#game_on");
+        const poker_move = document.querySelector('#poker_move');
+        const opp_move_waiting = document.querySelector('#opp_move_waiting')
+        const my_chips_bet_img = document.querySelector('#my_chips_bet_img');
+        const my_chips_bet = document.querySelector('#my_chips_bet');
+        const opp_chips_bet_img = document.querySelector('#opp_chips_bet_img');
+        const opp_chips_bet = document.querySelector('#opp_chips_bet');
+        const opp_username = document.querySelector('#opp_username');
+        const chat_log = document.querySelector('#chat-log');
+        const chat_message_input = document.querySelector('#chat-message-input');
+        const chat_message_submit = document.querySelector('#chat-message-submit');
+        const decision_made = document.querySelector('#decision_made');
+        const decision_selector = document.querySelector('#check_bet_call');
+        const bet_amount_input = document.querySelector('#bet_amount');
+        const pot_size = document.querySelector('#pot_size');
 
-        const startGameSocket = new WebSocket(
-            'ws://'
-            + window.location.host
-            + '/ws/poker/'
-            + roomName
-            + '/start/'
-        );
+        var hand = 1;
+        var needFlop = true;
+        var needTurn = true;
+        var needRiver = true;
 
-        const newPlayerSocket = new WebSocket(
-            'ws://'
-            + window.location.host
-            + '/ws/poker/'
-            + roomName
-            + '/newPlayerEntered/'
-        );
-
+        //start first hand, timer, and set blinds for first hand
         newPlayerSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
-           //alert("here");
-            location.reload();
-        };*/
-
-        newPlayerSocket.onmessage = function(e) {
-            const data = JSON.parse(e.data);
-           //alert(data.username + "    {{username}}");
-
-           //alert(data.game_on);
             if (data.game_on == "yes") {
-                document.querySelector('#body').style.backgroundImage = "none";
-                document.querySelector("#game_on").hidden = false;
 
-               //alert("{{my_turn}}");
+                //get rid of waiting screen
+                body.style.backgroundImage = "none";
+                game_on.hidden = false;
+
                 if ("{{my_turn}}" == "True") {
-                    document.querySelector('#poker_move').hidden = false;
-                    document.querySelector('#opp_move_waiting').hidden = true;
-                    var fifteenSeconds = 30;//"{{decision_time}}";
-                    display = document.querySelector('#time_remaining');
-                    startTimer(fifteenSeconds, display);
+                    setBlinds(true);
+                    changeMyTurn();
+
+                    //set timer
+                    var sec = 30;
+                    timer = setInterval(function(){
+                        if (sec < 10) {
+                            display.innerHTML='00:0'+sec;
+                        } else {
+                            display.innerHTML='00:'+sec;
+                        }
+                        sec--;
+                        if (sec < 0) {
+                            alert("time up (fold or check)");
+                            clearInterval(timer);
+                        }
+                    }, 1000)
 
                 } else {
-                    document.querySelector('#opp_move_waiting').hidden = false;
-                    document.querySelector('#poker_move').hidden = true;
+                    setBlinds(false);
+                    changeOppTurn();
                 }
             }
+
+            //alert(data.username);
             if (data.username != "{{username}}") {
-                document.querySelector('#opp_username').innerHTML = data.username;
+                opp_username.innerHTML = data.username;
             }
-            //document.querySelector('#poker_move').hidden=false;
         };
+
 
         newPlayerSocket.onopen = function() {
             if ("{{game_on}}" == "game_on") {
@@ -225,75 +233,139 @@
 
         chatSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
-            document.querySelector('#chat-log').value += ( data.username + ": " + data.message + '\n');
+            chat_log.value += ( data.username + ": " + data.message + '\n');
         };
 
-        /*startGameSocket.onmessage = function(e) {
-            document.querySelector('#start_game').hidden=true;
-        };
 
         chatSocket.onclose = function(e) {
             console.error('Chat socket closed unexpectedly');
-        };*/
+        };
 
-        document.querySelector('#chat-message-input').focus();
-        document.querySelector('#chat-message-input').onkeyup = function(e) {
+        chat_message_input.focus();
+        chat_message_input.onkeyup = function(e) {
             if (e.keyCode === 13) {  // enter, return
-                document.querySelector('#chat-message-submit').click();
+                chat_message_submit.click();
             }
         };
 
-        document.querySelector('#chat-message-submit').onclick = function(e) {
-            const messageInputDom = document.querySelector('#chat-message-input');
-            const message = messageInputDom.value;
+        chat_message_submit.onclick = function(e) {
+            const message = chat_message_input.value;
             chatSocket.send(JSON.stringify({
                 'message': message,
                 'username': "{{username}}",
             }));
-            messageInputDom.value = '';
+            chat_message_input.value = '';
         };
 
-        function startTimer(duration, display) {
-            var timer = duration, minutes, seconds;
-            setInterval(function () {
-                minutes = parseInt(timer / 60, 10);
-                seconds = parseInt(timer % 60, 10);
+        decision_made.onclick = function(e) {
+            myStopFunction();
+            const decision = decision_selector.options[decision_selector.selectedIndex].value;
 
-                minutes = minutes < 10 ? "0" + minutes : minutes;
-                seconds = seconds < 10 ? "0" + seconds : seconds;
+            if (decision == "call") {
+                prev_value = parseInt(my_chips_bet.innerHTML,10);
+                call_amount = parseInt(opp_chips_bet.innerHTML,10) - prev_value;
 
-                display.textContent = minutes + ":" + seconds;
+            }
 
-                if (--timer < 0) {
-                    timer = duration;
-                   //alert("time up");
-                }
-            }, 1000);
-        }
-
-        document.querySelector('#decision_made').onclick = function(e) {
-            const timer = document.querySelector('#timer');
-            const decision_selector = document.querySelector('#check_bet_call');
-            const bet_amount_input = document.querySelector('#bet_amount');
             if (bet_amount_input.value == null) {
                 bet_amount = 0;
             } else {
                 bet_amount = bet_amount_input.value;
             }
 
-           //alert(decision_selector.options[decision_selector.selectedIndex].value + " " + bet_amount);
-
             playerDecisionSocket.send(JSON.stringify({
                 'sentby': "{{username}}",
-                'decision': decision_selector.options[decision_selector.selectedIndex].value,
+                'decision': decision,
                 'betamount': bet_amount,
             }));
         }
 
         playerDecisionSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
-            alert("sent by:" + data.sentby + "  decision:" + data.decision + "  bet:" + data.bet_amount);
+            alert("sent by:" + data.sentby + "  decision:" + data.decision + "  bet:" + data.betamount);
+            var decision = data.decision;
+            var sentby = data.sentby;
+            var bet_amount = data.betamount;
+
+            var prev_value = parseInt(pot_size.innerHTML, 10);
+
+            if (decision == "bet") {
+                alert(parseInt(bet_amount, 10));
+                pot_size.innerHTML = prev_value + parseInt(bet_amount, 10);
+                
+                if (sentby == "{{username}}") {
+                    my_chips_bet_img.hidden = false;
+                    my_chips_bet.innerHTML = bet_amount;
+                    my_chips_bet.hidden = false;
+
+                } else {
+                    opp_chips_bet_img.hidden = false;
+                    opp_chips_bet.innerHTML = bet_amount;
+                    opp_chips_bet.hidden = false;
+                }
+
+            } else if (decision == "call") {
+                pot_size.innerHTML = prev_value + parseInt(bet_amount, 10);
+            }
+
+            if (sentby == "{{username}}") {
+                poker_move.hidden = true;
+                opp_move_waiting.hidden = false;
+            } else {
+                poker_move.hidden = false;
+                opp_move_waiting.hidden = true;
+                var sec = 30;
+                timer = setInterval(function(){
+                    if (sec < 10) {
+                        display.innerHTML='00:0'+sec;
+                    } else {
+                        display.innerHTML='00:'+sec;
+                    }
+                    sec--;
+                    if (sec < 0) {
+                        alert("time up (fold or check)");
+                        clearInterval(timer);
+                    }
+                }, 1000)
+            }
+
         }
+
+        function myStopFunction() {
+            clearInterval(timer);
+        }
+
+        function changeOppTurn() {
+            opp_move_waiting.hidden = false;
+            poker_move.hidden = true;
+        }
+
+        function changeMyTurn() {
+            poker_move.hidden = false;
+            opp_move_waiting.hidden = true;
+        }
+
+        function setBlinds(isDealer) {
+            if (isDealer) {
+                //set blinds
+                my_chips_bet.hidden = false;
+                my_chips_bet.innerHTML = "{{small_blind}}";
+                my_chips_bet_img.hidden = false;
+
+                opp_chips_bet_img.hidden = false;
+                opp_chips_bet.innerHTML = "{{big_blind}}";
+                opp_chips_bet.hidden = false;
+            } else {
+                opp_chips_bet_img.hidden = false;
+                opp_chips_bet.innerHTML = "{{small_blind}}";
+                opp_chips_bet.hidden = false;
+
+                my_chips_bet_img.hidden = false;
+                my_chips_bet.innerHTML = "{{big_blind}}";
+                my_chips_bet.hidden = false;
+            }
+        }
+
 
     </script>
 </body>
