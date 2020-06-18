@@ -93,10 +93,8 @@ class NewPlayerConsumer(WebsocketConsumer):
     def game_on(self, event):
         username = event['username']
         users = Room.objects.get(channel_name="poker_game").get_users()
-        print(users)
-        print("help")
+        print("users:",users)
         if (len(users) == 2):
-            print("help2")
             self.send(text_data=json.dumps({
                 'username': username,
                 'game_on':'yes'
@@ -134,26 +132,53 @@ class PlayerDecisionConsumer(WebsocketConsumer):
 
     # Receive message from WebSocket
     def receive(self, text_data):
-        print("HERE")
         text_data_json = json.loads(text_data)
         sentby = text_data_json['sentby']
-        betamount = text_data_json['betamount']
         decision = text_data_json['decision']
-        print(betamount)
+        
+        if decision == "bet":
+            betamount = text_data_json['betamount']
+            print('betamount:',betamount)
 
-        # Send message to room group
-        async_to_sync(self.channel_layer.group_send)(
-            self.room_group_name,
-            {
-                'type': 'poker_message',
-                'sentby': sentby,
-                'betamount':betamount,
-                'decision':decision,
-            }
-        )
+            # Send message to room group
+            async_to_sync(self.channel_layer.group_send)(
+                self.room_group_name,
+                {
+                    'type': 'poker_message_bet',
+                    'sentby': sentby,
+                    'betamount':betamount,
+                    'decision':decision,
+                }
+            )
+        
+        elif decision == "call":
+            callamount = text_data_json['callamount']
+            print('callamount:',callamount)
+
+            # Send message to room group
+            async_to_sync(self.channel_layer.group_send)(
+                self.room_group_name,
+                {
+                    'type': 'poker_message_call',
+                    'sentby': sentby,
+                    'callamount':callamount,
+                    'decision':decision,
+                }
+            )
+        
+        else:
+            # Send message to room group
+            async_to_sync(self.channel_layer.group_send)(
+                self.room_group_name,
+                {
+                    'type': 'poker_message_check',
+                    'sentby': sentby,
+                    'decision':decision,
+                }
+            )
 
     # Receive message from room group
-    def poker_message(self, event):
+    def poker_message_bet(self, event):
         sentby = event['sentby']
         decision= event['decision']
         betamount = event['betamount']
@@ -162,5 +187,29 @@ class PlayerDecisionConsumer(WebsocketConsumer):
         self.send(text_data=json.dumps({
             'sentby': sentby,
             'betamount':betamount,
+            'decision':decision,
+        }))
+        
+    # Receive message from room group
+    def poker_message_call(self, event):
+        sentby = event['sentby']
+        decision= event['decision']
+        callamount = event['callamount']
+
+        # Send message to WebSocket
+        self.send(text_data=json.dumps({
+            'sentby': sentby,
+            'callamount':callamount,
+            'decision':decision,
+        }))
+    
+    # Receive message from room group
+    def poker_message_check(self, event):
+        sentby = event['sentby']
+        decision= event['decision']
+
+        # Send message to WebSocket
+        self.send(text_data=json.dumps({
+            'sentby': sentby,
             'decision':decision,
         }))

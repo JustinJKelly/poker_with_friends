@@ -139,10 +139,7 @@ def room(request, room_name):
         context['my_turn'] = table.player2_turn
         context['opp_turn'] = table.player1_turn
         
-    if username == table.dealer:
-        context['dealer'] = "Yes"
-    else:
-        context['dealer'] = "No"
+    context['dealer'] = table.dealer
     
     
     return render(request, 'poker/room.html', context)
