@@ -138,7 +138,7 @@ class PlayerDecisionConsumer(WebsocketConsumer):
         
         if decision == "bet":
             betamount = text_data_json['betamount']
-            print('betamount:',betamount)
+            #print('betamount:',betamount)
 
             # Send message to room group
             async_to_sync(self.channel_layer.group_send)(

@@ -5,6 +5,14 @@
 <head>
     <meta charset="utf-8"/>
     <title>Poker with Friends</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
 
     <style>
         .sidenav {
@@ -56,7 +64,7 @@
         context['dealer'] = "Yes"/"No"
 -->
 
-<body id="body">
+<body id="body" style="font-size:14px;">
     <div>
         <center> 
             <h2 style="color:white;"> Waiting for other player </h2>
@@ -64,11 +72,13 @@
     </div>
     <div id="game_on" hidden>
         <div class="sidenav">
-            <h4 style="color:white;"> Chat </h4>
-            <textarea id="chat-log" overflow="scroll" cols="30" rows="25"></textarea><br>
-            <input id="chat-message-input" type="text" size="30"><br>
+            <h5 style="color:white;"> Chat </h5>
+            <textarea id="chat-log" overflow="scroll" cols="30" rows="15"></textarea><br>
+            <input id="chat-message-input" placeholder="Enter message..." type="text" size="30"><br>
             <input id="chat-message-submit" type="button" value="Send">
             <br/>
+            <br/>
+            <h5 style="color:white;">Feed</h5>
             <textarea id="move_log" overflow="scroll" cols="30" rows="10"></textarea><br>
         </div>
         <div>
@@ -96,7 +106,7 @@
             <!--my poker info-->
             <div style="position:fixed; left:350px;top:250px;">
                 <p> {{username}} </p>
-                <p> stack : {{my_curr_stack}} </p>
+                <p id="my_stack"> stack : {{my_curr_stack}} </p>
                 <div class="row">
                     <img class="card_img" id="card1" src="{% static card1 %}"></img>
                     <img class="card_img" id="card2" src="{% static card2 %}"></img>
@@ -105,20 +115,25 @@
             <!--opp poker info-->
             <div style="position:fixed; left:1200px;top:250px;">
                 <p id="opp_username"> {{opp_username}} </p>
-                <p> stack : {{opp_curr_stack}} </p>
+                <p id="opp_stack"> stack : {{opp_curr_stack}} </p>
             </div>
 
             <div hidden id="poker_move">
                 <center>
-                    <select name="check_bet_call" id="check_bet_call">
+                    <!--<select name="check_bet_call" id="check_bet_call">
                         <option value="check">Check</option>
                         <option value="bet">Bet</option>
                         <option value="call">Call</option>
-                    </select>
-                    <label for="bet_amount">Bet Amount:</label>
-                    <input type="text" placeholder="Enter bet" name="bet_amount" id="bet_amount">
-                    <p id="timer">Time Remaining:<b id="time_remaining"></b></p>
-                    <input class="btn btn-primary" type="submit" id="decision_made"  value="Submit">
+                    </select>-->
+                        <button hidden style="width:100px;" id="check_button" class="btn btn-primary" type="button">Check</button>
+                        <button hidden style="width:100px;left:50px;" id="call_button" class="btn btn-primary" type="button">Call</button>
+                        <button hidden style="width:100px;left:50px;" id="fold_button" class="btn btn-primary" type="button">Fold</button>
+                        <button hidden style="width:100px;left:50px;" id="bet_button" class="btn btn-primary" type="button">Bet</button>
+                        <input id="bet_amount" style="width:70px;height:30px;font-size:16px;" value="0" type="number" min="0" max="100" step="1">
+                        <!--<label for="bet_amount">Bet Amount:</label>-->
+                        <!--<input type="text" placeholder="Enter bet" name="bet_amount" id="bet_amount">-->
+                        <p id="timer">Time Remaining:<b id="time_remaining"></b></p>
+                        <!--<input class="btn btn-primary" type="submit" id="decision_made"  value="Submit">-->
                 </center>
             </div>
         </div>
@@ -173,7 +188,6 @@
         const chat_message_submit = document.querySelector('#chat-message-submit');
         const decision_made = document.querySelector('#decision_made');
         const decision_selector = document.querySelector('#check_bet_call');
-        const bet_amount_input = document.querySelector('#bet_amount');
         const pot_size = document.querySelector('#pot_size');
         const flop1 = document.querySelector('#flop1');
         const flop2 = document.querySelector('#flop2');
@@ -181,13 +195,26 @@
         const turn = document.querySelector('#turn');
         const river = document.querySelector('#river');
         const move_log = document.querySelector('#move_log');
+        const bet_amount_input = document.querySelector('#bet_amount');
+        const bet_button = document.querySelector('#bet_button');
+        const check_button = document.querySelector('#check_button');
+        const call_button = document.querySelector('#call_button');
+        const fold_button = document.querySelector('#fold_button');
+        var my_stack = "{{my_curr_stack}}";
+        var opp_stack = "{{opp_curr_stack}}";
+        const opp_stack_html = document.querySelector('#opp_stack');
+        const my_stack_html = document.querySelector('#my_stack');
+        var move = 1;
+        var timer = null;
+
+        
 
         var hand = 1;
         var needFlop = true;
         var needTurn = true;
         var needRiver = true;
         var dealer = "{{dealer}}";
-        alert(dealer);
+        //alert(dealer);
         if (dealer == "{{my_username}}") {
             var my_turn = true;
         } else {
@@ -207,9 +234,11 @@
                 if (my_turn) {
                     setBlinds(true); //set blinds where current user is SB
                     changeMyTurn(); //update UI to show it's my turn
+                    setBetAmount();
                 } else {
                     setBlinds(false); //set blinds where current user is BB
                     changeOppTurn(); //update UI to show it's opp turn
+                    setBetAmount();
                 }
             }
             move_log.value += ( "Cards dealt & blinds set.\n" );
@@ -224,7 +253,7 @@
         //when new player, check if app players are there
         newPlayerSocket.onopen = function() {
             if ("{{game_on}}" == "game_on") {
-               //alert("Game on");
+               ////alert("Game on");
                 newPlayerSocket.send(JSON.stringify({
                     "game_on":"game_on",
                     "username": "{{username}}",
@@ -260,69 +289,69 @@
         };
         //END CHAT
 
-        //Player whose turn it is made decision
-        decision_made.onclick = function(e) {
+        
+        //START POKER DATA PATH
+        check_button.onclick = function(e) {
             myStopFunction(); //stop timer
-            const decision = decision_selector.options[decision_selector.selectedIndex].value;
+            playerDecisionSocket.send(JSON.stringify({
+                'sentby': "{{username}}",
+                'decision': "check",
+            }));
 
-            if (decision == "call") {
-                prev_value = parseInt(my_chips_bet.innerHTML,10);
-                call_amount = parseInt(opp_chips_bet.innerHTML,10) - prev_value;
-                alert(prev_value + " " + call_amount);
+        }
+        call_button.onclick = function(e) {
+            myStopFunction(); //stop timer
+            prev_value = parseInt(my_chips_bet.innerHTML,10); //get prev chips the player has bet
+            call_amount = parseInt(opp_chips_bet.innerHTML,10) - prev_value; //get the amount left to call
+            //alert(prev_value + " " + call_amount);
 
-                //send a message with the bet to the socket
-                playerDecisionSocket.send(JSON.stringify({
-                    'sentby': "{{username}}",
-                    'decision': decision,
-                    'callamount': call_amount,
-                }));
-            } else if (decision == "bet") {
+            //send a message with the bet to the socket
+            playerDecisionSocket.send(JSON.stringify({
+                'sentby': "{{username}}",
+                'decision': "call",
+                'callamount': call_amount,
+            }));
+            
+        }
 
-                if (bet_amount_input.value == null) {
-                    alert("null bet amount");
-                    bet_amount = 0;
-                } else {
-                    bet_amount = bet_amount_input.value;
-                    alert(bet_amount);
-                }
+        fold_button.onclick = function(e) {
+            myStopFunction(); //stop timer
+            
+        }
 
-                //send a message with the bet to the socket
-                playerDecisionSocket.send(JSON.stringify({
-                    'sentby': "{{username}}",
-                    'decision': decision,
-                    'betamount': bet_amount,
-                }));
-            } else { 
-                //check
-                playerDecisionSocket.send(JSON.stringify({
-                    'sentby': "{{username}}",
-                    'decision': decision,
-                }));
-            }
+        bet_button.onclick = function(e) {
+            myStopFunction(); //stop timer
+            bet_amount = bet_amount_input.value;
+
+            //send a message with the bet to the socket
+            playerDecisionSocket.send(JSON.stringify({
+                'sentby': "{{username}}",
+                'decision': "bet",
+                'betamount': bet_amount,
+            }));
+            
         }
 
         //receive a message from the socket
         playerDecisionSocket.onmessage = function(e) {
 
-            alert("here");
-
             const data = JSON.parse(e.data);
             var decision = data.decision;
             var sentby = data.sentby;
-            alert("sent by:" + data.sentby + "  decision:" + data.decision);
+            //alert("sent by:" + data.sentby + "  decision:" + data.decision);
 
             if (decision == "bet") {
                 var bet_amount = data.betamount;
-                alert(parseInt(bet_amount, 10));
+                //alert(parseInt(bet_amount, 10));
                 move_log.value += ( sentby + " bets " + bet_amount + "\n" );
-                updateTurnBet(sentby, decision, bet_amount);
+                changeUIBet(sentby, decision, bet_amount);
             } else if (decision == "call") {
                 var call_amount = data.callamount;
                 move_log.value += ( sentby + " calls " + call_amount + "\n" );
-                updateTurnCall(sentby, decision, call_amount);
+                changeUICall(sentby, decision, call_amount);
             }  else { //check
                 move_log.value += ( sentby + " checks\n" );
-                updateTurnCheck(sentby, decision);
+                changeUICheck(sentby, decision);
             }
 
         }
@@ -332,9 +361,15 @@
         }
 
         function changeOppTurn() {
+            move = move + 1;
             opp_move_waiting.hidden = false;
             poker_move.hidden = true;
             my_turn = true;
+
+            bet_button.hidden = true;
+            call_button.hidden = true;
+            fold_button.hidden = true;
+            check_button.hidden = true;
         }
 
         function hideChips() {
@@ -348,6 +383,7 @@
         }
 
         function changeMyTurn() {
+            move = move + 1;
             poker_move.hidden = false;
             opp_move_waiting.hidden = true;
             my_turn = false;
@@ -362,9 +398,11 @@
                 sec--;
                 if (sec < 0) {
                     alert("time up (fold or check)");
-                    clearInterval(timer);
+                    myStopFunction(timer);
                 }
             }, 1000)
+
+            setBetAmount();
         }
 
         function setBlinds(isDealer) {
@@ -372,106 +410,158 @@
                 //set blinds
                 my_chips_bet.hidden = false;
                 my_chips_bet.innerHTML = "{{small_blind}}";
+                my_stack -= "{{small_blind}}";
+                my_stack_html.innerHTML = my_stack;
                 my_chips_bet_img.hidden = false;
 
                 opp_chips_bet_img.hidden = false;
                 opp_chips_bet.innerHTML = "{{big_blind}}";
+                opp_stack -= "{{big_blind}}";
+                opp_stack_html.innerHTML = opp_stack;
                 opp_chips_bet.hidden = false;
             } else {
                 opp_chips_bet_img.hidden = false;
                 opp_chips_bet.innerHTML = "{{small_blind}}";
+                opp_stack -= "{{small_blind}}";
+                opp_stack_html.innerHTML = opp_stack;
                 opp_chips_bet.hidden = false;
 
                 my_chips_bet_img.hidden = false;
                 my_chips_bet.innerHTML = "{{big_blind}}";
+                my_stack -= "{{big_blind}}";
+                my_stack_html.innerHTML = my_stack;
                 my_chips_bet.hidden = false;
             }
 
             pot_size.innerHTML = parseInt("{{small_blind}}", 10) + parseInt("{{big_blind}}", 10);
         }
 
-        function updateTurnCall(sentby, decision, call_amount) {
+        function changeUICall(sentby, decision, call_amount) {
 
             var prev_pot_value = parseInt(pot_size.innerHTML, 10);
-            alert(prev_pot_value);
+            //alert(prev_pot_value);
             pot_size.innerHTML = prev_pot_value + parseInt(call_amount, 10);
 
             if (needFlop) { //PREFLOP
-                if (dealer == sentby) { //SB called the BB
+                if ("{{dealer}}" == sentby) { //SB called the BB
                     if (sentby == "{{my_username}}") {
-                        changeOppTurn() //now opp turn
+                        changeOppTurn(); //now opp turn
                         var prev_bet_amount = parseInt(my_chips_bet.innerHTML, 10);
                         my_chips_bet.innerHTML = prev_bet_amount + parseInt(call_amount);
+                        my_stack -= (parseInt(call_amount))
+                        my_stack_html.innerHTML = my_stack;
                     } else {
-                        changeMyTurn() //now my turn
+                        changeMyTurn(); //now my turn
                         var prev_bet_amount = parseInt(opp_chips_bet.innerHTML, 10);
                         opp_chips_bet.innerHTML = prev_bet_amount + parseInt(call_amount);
+                        opp_stack -= (parseInt(call_amount))
+                        opp_stack_html.innerHTML = opp_stack;
                     }
+                    
+            
+                    if (move > 1) { //SB called BB raise
+                        doFlop();
+                        swapTurnsAfterFlop();
+                        needFlop = false;
+                    }
+
                 } else { //BB called preflop raise of SB
                     doFlop();
                     needFlop = false;
-                    hideChips();
                     swapTurnsAfterFlop();
+                    if (sentby == "{{my_username}}") {
+                        //var prev_bet_amount = parseInt(my_chips_bet.innerHTML, 10);
+                        //my_chips_bet.innerHTML = prev_bet_amount + parseInt(call_amount);
+                        my_stack -= (parseInt(call_amount))
+                        my_stack_html.innerHTML = my_stack;
+                    } else {
+                        //var prev_bet_amount = parseInt(opp_chips_bet.innerHTML, 10);
+                        //opp_chips_bet.innerHTML = prev_bet_amount + parseInt(call_amount);
+                        opp_stack -= (parseInt(call_amount))
+                        opp_stack_html.innerHTML = opp_stack;
+                    }
                 } 
             } else if (needTurn) {
                 doTurn();
                 needTurn = false;
-                hideChips();
+                if (sentby == "{{my_username}}") {
+                    var prev_bet_amount = parseInt(my_chips_bet.innerHTML, 10);
+                    my_chips_bet.innerHTML = prev_bet_amount + parseInt(call_amount);
+                    my_stack -= (parseInt(call_amount))
+                    my_stack_html.innerHTML = my_stack;
+                } else {
+                    var prev_bet_amount = parseInt(opp_chips_bet.innerHTML, 10);
+                    opp_chips_bet.innerHTML = prev_bet_amount + parseInt(call_amount);
+                    opp_stack -= (parseInt(call_amount))
+                    opp_stack_html.innerHTML = opp_stack;
+                }
                 swapTurnsAfterFlop();
+
             } else if (needRiver) {
                 doRiver();
                 needRiver = false;
-                hideChips();
+                if (sentby == "{{my_username}}") {
+                    changeOppTurn() //now opp turn
+                    var prev_bet_amount = parseInt(my_chips_bet.innerHTML, 10);
+                    my_chips_bet.innerHTML = prev_bet_amount + parseInt(call_amount);
+                    my_stack -= (parseInt(call_amount))
+                    my_stack_html.innerHTML = my_stack;
+                } else {
+                    changeMyTurn() //now my turn
+                    var prev_bet_amount = parseInt(opp_chips_bet.innerHTML, 10);
+                    opp_chips_bet.innerHTML = prev_bet_amount + parseInt(call_amount);
+                    opp_stack -= (parseInt(call_amount))
+                    opp_stack_html.innerHTML = opp_stack;
+                }
                 swapTurnsAfterFlop();
+
             } else {
                 checkHands();
             }
 
         }
 
-        function updateTurnBet(sentby, decision, bet_amount) {
+        function changeUIBet(sentby, decision, bet_amount) {
 
             var prev_pot_value = parseInt(pot_size.innerHTML, 10);
-            alert(prev_pot_value);
-            pot_size.innerHTML = prev_pot_value + parseInt(bet_amount, 10);
+            alert("bet:" + bet_amount);
+            alert("my_chips:" + parseInt(my_chips_bet.innerHTML));
+            alert("opp_chips:" + parseInt(opp_chips_bet.innerHTML));
+
+            if (sentby == "{{my_username}}") {
+                pot_size.innerHTML = prev_pot_value + parseInt(bet_amount, 10) - parseInt(my_chips_bet.innerHTML);
+            } else {
+                pot_size.innerHTML = prev_pot_value + parseInt(bet_amount, 10) - parseInt(opp_chips_bet.innerHTML);
+            }
             
             if (sentby == "{{my_username}}") {
-                alert("look here " + bet_amount);
                 my_chips_bet_img.hidden = false;
-                if (parseInt(my_chips_bet.innerHTML, 10) > 0) {
-                    my_chips_bet.innerHTML =  parseInt(my_chips_bet.innerHTML, 10) + bet_amount;
-                } else {
-                    my_chips_bet.innerHTML =  bet_amount;
-                }
+                my_stack -= (bet_amount - parseInt(my_chips_bet.innerHTML));
+                my_chips_bet.innerHTML =  bet_amount;
+                my_stack_html.innerHTML = my_stack;
                 my_chips_bet.hidden = false;
-                my_chips_bet_img.hidden = false;
 
             } else {
                 opp_chips_bet_img.hidden = false;
-                if (parseInt(opp_chips_bet.innerHTML, 10) > 0) {
-                    opp_chips_bet.innerHTML = parseInt(opp_chips_bet.innerHTML, 10) + bet_amount;
-                } else {
-                    opp_chips_bet.innerHTML =  bet_amount;
-                }
+                opp_stack -= (bet_amount - parseInt(opp_chips_bet.innerHTML));
+                opp_chips_bet.innerHTML =  bet_amount;
+                opp_stack_html.innerHTML = opp_stack;
                 opp_chips_bet.hidden = false;
-                opp_chips_bet_img.hidden = false;
             }
 
             swapTurnAfterCheckBet(sentby);
         }
 
-        function updateTurnCheck(sentby, decision) {
+        function changeUICheck(sentby, decision) {
             if (needFlop) {
                 doFlop();
                 needFlop = false;
-                hideChips();
                 swapTurnsAfterFlop();
 
             } else if (needTurn) {
                 if (dealer == sentby) {
                     doTurn();
                     needTurn = false;
-                    hideChips();
                     swapTurnsAfterFlop();
                 } else {
                     swapTurnAfterCheckBet(sentby);
@@ -482,7 +572,6 @@
                     doRiver();
                     needRiver = false;
                     swapTurnsAfterFlop();
-                    hideChips();
                 } else {
                     swapTurnAfterCheckBet(sentby);
                 }
@@ -492,11 +581,17 @@
         }
 
         function swapTurnsAfterFlop() {
-            if (dealer == "{{my_username}}" ) {
+            move = move + 1;
+            hideChips();
+            //alert("henefinrifne");
+            if (dealer == "{{my_username}}") {
                 changeOppTurn();
             } else {
                 changeMyTurn();
             }
+
+            my_chips_bet.innerHTML = 0;
+            opp_chips_bet.innerHTML = 0;
         }
 
         function doFlop() {
@@ -517,12 +612,44 @@
         }
 
         function swapTurnAfterCheckBet(sentby) {
-            alert("hvyguhu " + sentby);
+            //alert("hvyguhu " + sentby);
             if (sentby == "{{my_username}}") {
-                changeOppTurn() //now opp turn
+                changeOppTurn(); //now opp turn
             } else {
-                changeMyTurn() //now my turn
+                changeMyTurn(); //now my turn
             }
+        }
+
+        function setBetAmount() {
+            var my_chips_out = parseInt(my_chips_bet.innerHTML);
+            var opp_chips_out = parseInt(opp_chips_bet.innerHTML);
+            bet_button.hidden = true;
+            call_button.hidden = true;
+            fold_button.hidden = true;
+            bet_amount_input.hidden = true;
+
+            if (my_chips_out < opp_chips_out) {
+                bet_button.hidden = false;
+                call_button.hidden = false;
+                fold_button.hidden = false;
+                bet_amount_input.hidden = false;
+            } else if (my_chips_out == opp_chips_out) {
+                bet_button.hidden = false;
+                check_button.hidden = false;
+                bet_amount_input.hidden = false;
+            }
+
+            if (opp_chips_out == 0) {
+                bet_amount_input.min = "{{big_blind}}";
+                bet_amount_input.value = "{{big_blind}}"
+            } else if (opp_chips_out * 2 > my_chips_out) {
+                bet_amount_input.min = (opp_chips_out * 2);
+                bet_amount_input.value = (opp_chips_out * 2);
+            } else {
+                bet_amount_input.min = parseInt(my_stack);
+                bet_amount_input.value = parseInt(my_stack);
+            }
+            bet_amount_input.max = parseInt(my_stack);
         }
 
     </script>
