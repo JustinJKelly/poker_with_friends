@@ -3,6 +3,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from .forms import MakeTableForm, JoinTableForm
 from django.contrib import messages
 from .models import Table
+from .deal_cards import deal_cards
 
 # Create your views here.
 def make_table(request):
@@ -88,13 +89,36 @@ table_id = models.CharField(max_length=16, null=False)
 '''
 #start game
 def room(request, room_name):
+    
     context = {}
+    table = Table.objects.get(table_id=request.session.get('table_id'))
+    
+    if table.player2 == "none":
+        cards = deal_cards(2)
+        
+        context['flop_card1'] = cards[4]
+        context['flop_card2'] = cards[5]
+        context['flop_card3'] = cards[6]
+        context['pot_size'] = table.pot_size
+        context['turn_card'] = cards[7]
+        context['river_card'] = cards[8]
+        
+        table.player1_card1 = cards[0]
+        table.player1_card2 = cards[1]
+        table.player2_card1 = cards[2]
+        table.player2_card2 = cards[3]
+        table.flop_card1 = cards[4]
+        table.flop_card2 = cards[5]
+        table.flop_card3 = cards[6]
+        table.turn_card = cards[7]
+        table.river_card = cards[8]
+        table.save()
+    
     if 'username' in request.session:
         username = request.session.get('username')
     
     context['room_name'] = room_name
     context['username'] = username
-    table = Table.objects.get(table_id=request.session.get('table_id'))
     if table.player1 != "none" and table.player2 != "none":
         context["game_on"] = "game_on"
         print("GAME ON")
@@ -105,16 +129,12 @@ def room(request, room_name):
     context['big_blind'] = table.big_blind
     context['small_blind'] = float(table.big_blind/2)
     context['decision_time'] = table.decision_time
-    context['flop_card1'] = table.flop_card1
-    context['flop_card2'] = table.flop_card2
-    context['flop_card3'] = table.flop_card3
-    context['pot_size'] = table.pot_size
-    context['turn_card'] = table.turn_card
-    context['river_card'] = table.river_card
     
     if table.player1 == username:
-        context['card1'] = "img/2_of_hearts.png" #table.player1_card1
-        context['card2'] = "img/2_of_diamonds.png" #table.player1_card2
+        context['card1'] = cards[0]
+        context['card2'] = cards[1]
+        context['opp_card1'] = cards[2]
+        context['opp_card2'] = cards[3]
         context['my_username'] = table.player1
         context['opp_username'] = table.player2
         context['my_last_bet_amount'] = table.player1_last_bet_amount
@@ -125,9 +145,17 @@ def room(request, room_name):
         context['opp_last_bet_amount'] = table.player2_last_bet_amount
         context['my_turn'] = table.player1_turn
         context['opp_turn'] = table.player2_turn
+        context['flop_card1'] = table.flop_card1
+        context['flop_card2'] = table.flop_card2
+        context['flop_card3'] = table.flop_card3
+        context['pot_size'] = table.pot_size
+        context['turn_card'] = table.turn_card
+        context['river_card'] = table.river_card
     else:
         context['card1'] = table.player2_card1
         context['card2'] = table.player2_card2
+        context['opp_card1'] = table.player1_card1
+        context['opp_card2'] = table.player1_card2
         context['my_username'] = table.player2
         context['opp_username'] = table.player1
         context['my_last_bet_amount'] = table.player2_last_bet_amount
@@ -138,15 +166,14 @@ def room(request, room_name):
         context['opp_last_bet_amount'] = table.player1_last_bet_amount
         context['my_turn'] = table.player2_turn
         context['opp_turn'] = table.player1_turn
+        context['flop_card1'] = table.flop_card1
+        context['flop_card2'] = table.flop_card2
+        context['flop_card3'] = table.flop_card3
+        context['pot_size'] = table.pot_size
+        context['turn_card'] = table.turn_card
+        context['river_card'] = table.river_card
         
     context['dealer'] = table.dealer
     
     
     return render(request, 'poker/room.html', context)
-    
-def decision(request, room_name, username):
-    print(room_name + " " + username)
-    print(request.POST)
-    return render(request, 'poker/room.html', {
-        'room_name': room_name, 'username':username
-    })

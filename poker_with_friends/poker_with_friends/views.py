@@ -1,7 +1,6 @@
 from django.shortcuts import redirect, render, reverse
 from django.http import HttpResponse
 from django.contrib import messages
-from .deal_cards import deal_cards
 import random
 
 # Create your views here.

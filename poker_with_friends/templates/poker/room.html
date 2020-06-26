@@ -92,11 +92,11 @@
             </center>
             <!--Table-->
             <img style="margin-left:500px;" src="{% static 'img/poker_table.png' %}" ></img>
-            <img hidden style="position:fixed;left:700px; margin-top:100px;" id="flop1" class="card_img" src="{% static 'img/2_of_hearts.png' %}"></img>
-            <img hidden style="position:fixed;left:750px; margin-top:100px;" id="flop2" class="card_img" src="{% static 'img/2_of_diamonds.png' %}"></img>
-            <img hidden style="position:fixed;left:800px; margin-top:100px;" id="flop3" class="card_img" src="{% static 'img/2_of_clubs.png' %}"></img>
-            <img hidden style="position:fixed;left:850px; margin-top:100px;" id="turn"  class="card_img" src="{% static 'img/2_of_clubs.png' %}"></img>
-            <img hidden style="position:fixed;left:900px;margin-top:100px;" id="river" class="card_img" src="{% static 'img/2_of_clubs.png' %}"></img>
+            <img hidden style="position:fixed;left:700px; margin-top:100px;" id="flop1" class="card_img"></img>
+            <img hidden style="position:fixed;left:750px; margin-top:100px;" id="flop2" class="card_img"></img>
+            <img hidden style="position:fixed;left:800px; margin-top:100px;" id="flop3" class="card_img"></img>
+            <img hidden style="position:fixed;left:850px; margin-top:100px;" id="turn"  class="card_img"></img>
+            <img hidden style="position:fixed;left:900px;margin-top:100px;" id="river" class="card_img"></img>
             <b style="font-size:18px; color:white;position:fixed;left:780px;margin-top:180px;" id="pot">Pot:</b>
             <b style="font-size:18px; color:white;position:fixed;left:850px;margin-top:180px;" id="pot_size">0</b>
             <img hidden id="my_chips_bet_img" class="card_img" style="position:fixed;margin-top:150px;left:570px;width:40px;height:40px;" src="{% static 'img/poker_chips.png' %}"></img>
@@ -108,8 +108,8 @@
                 <p> {{username}} </p>
                 <p id="my_stack"> stack : {{my_curr_stack}} </p>
                 <div class="row">
-                    <img class="card_img" id="card1" src="{% static card1 %}"></img>
-                    <img class="card_img" id="card2" src="{% static card2 %}"></img>
+                    <img class="card_img" id="card1"></img>
+                    <img class="card_img" id="card2"></img>
                 </div>
             </div>
             <!--opp poker info-->
@@ -120,20 +120,12 @@
 
             <div hidden id="poker_move">
                 <center>
-                    <!--<select name="check_bet_call" id="check_bet_call">
-                        <option value="check">Check</option>
-                        <option value="bet">Bet</option>
-                        <option value="call">Call</option>
-                    </select>-->
                         <button hidden style="width:100px;" id="check_button" class="btn btn-primary" type="button">Check</button>
                         <button hidden style="width:100px;left:50px;" id="call_button" class="btn btn-primary" type="button">Call</button>
                         <button hidden style="width:100px;left:50px;" id="fold_button" class="btn btn-primary" type="button">Fold</button>
                         <button hidden style="width:100px;left:50px;" id="bet_button" class="btn btn-primary" type="button">Bet</button>
                         <input id="bet_amount" style="width:70px;height:30px;font-size:16px;" value="0" type="number" min="0" max="100" step="1">
-                        <!--<label for="bet_amount">Bet Amount:</label>-->
-                        <!--<input type="text" placeholder="Enter bet" name="bet_amount" id="bet_amount">-->
                         <p id="timer">Time Remaining:<b id="time_remaining"></b></p>
-                        <!--<input class="btn btn-primary" type="submit" id="decision_made"  value="Submit">-->
                 </center>
             </div>
         </div>
@@ -169,6 +161,14 @@
             + roomName
             + '/playerDecision/{{username}}/'
         );
+
+        /*const handWinnerSocket = new WebSocket(
+            'ws://'
+            + window.location.host
+            + '/ws/poker/'
+            + roomName
+            + '/handWinner/'
+        );*/
 
         var decision_time = 30;//"{{decision_time}}";
         var opp_last_move = null;
@@ -206,6 +206,7 @@
         const my_stack_html = document.querySelector('#my_stack');
         var move = 1;
         var timer = null;
+        
 
         
 
@@ -214,8 +215,25 @@
         var needTurn = true;
         var needRiver = true;
         var dealer = "{{dealer}}";
-        //alert(dealer);
-        if (dealer == "{{my_username}}") {
+
+        var flopCard1 = "{{flop_card1}}";
+        flop1.src = "/static/img/" + flopCard1 + ".png";
+        var flopCard2 = "{{flop_card2}}";
+        flop2.src = "/static/img/" + flopCard2 + ".png";
+        var flopCard3 = "{{flop_card3}}";
+        flop3.src = "/static/img/" + flopCard3 + ".png";
+        var turnCard = "{{turn_card}}";
+        turn.src = "/static/img/" + turnCard + ".png";
+        var riverCard = "{{river_card}}";
+        river.src = "/static/img/" + riverCard + ".png";
+        var my_card1 = "{{card1}}";
+        card1.src = "/static/img/" + my_card1 + ".png";
+        var my_card2 = "{{card2}}";
+        card2.src = "/static/img/" + my_card2 + ".png";
+        var opp_card1 = "{{opp_card1}}";
+        var opp_card2 = "{{opp_card2}}";
+
+        if (dealer == "{{username}}") {
             var my_turn = true;
         } else {
             var my_turn = false;
@@ -292,7 +310,7 @@
         
         //START POKER DATA PATH
         check_button.onclick = function(e) {
-            myStopFunction(); //stop timer
+            //myStopFunction(); //stop timer
             playerDecisionSocket.send(JSON.stringify({
                 'sentby': "{{username}}",
                 'decision': "check",
@@ -300,7 +318,7 @@
 
         }
         call_button.onclick = function(e) {
-            myStopFunction(); //stop timer
+            //myStopFunction();
             prev_value = parseInt(my_chips_bet.innerHTML,10); //get prev chips the player has bet
             call_amount = parseInt(opp_chips_bet.innerHTML,10) - prev_value; //get the amount left to call
             //alert(prev_value + " " + call_amount);
@@ -315,12 +333,11 @@
         }
 
         fold_button.onclick = function(e) {
-            myStopFunction(); //stop timer
-            
+            //myStopFunction();
         }
 
         bet_button.onclick = function(e) {
-            myStopFunction(); //stop timer
+            //myStopFunction();
             bet_amount = bet_amount_input.value;
 
             //send a message with the bet to the socket
@@ -357,7 +374,12 @@
         }
 
         function myStopFunction() {
-            clearInterval(timer);
+            /*if (timer) {
+                clearInterval(timer);
+                timer = null;
+            } else {
+                alert("no timer");
+            }*/
         }
 
         function changeOppTurn() {
@@ -388,7 +410,7 @@
             opp_move_waiting.hidden = true;
             my_turn = false;
 
-            var sec = 30;
+            /*var sec = 30;
             timer = setInterval(function(){
                 if (sec < 10) {
                     display.innerHTML='00:0'+sec;
@@ -398,9 +420,9 @@
                 sec--;
                 if (sec < 0) {
                     alert("time up (fold or check)");
-                    myStopFunction(timer);
+                    myStopFunction();
                 }
-            }, 1000)
+            }, 1000)*/
 
             setBetAmount();
         }
@@ -439,27 +461,29 @@
         function changeUICall(sentby, decision, call_amount) {
 
             var prev_pot_value = parseInt(pot_size.innerHTML, 10);
-            //alert(prev_pot_value);
             pot_size.innerHTML = prev_pot_value + parseInt(call_amount, 10);
 
+            //alert(dealer + " " + sentby + " " + "{{username}}" + needFlop + move + " " + call_amount);
             if (needFlop) { //PREFLOP
-                if ("{{dealer}}" == sentby) { //SB called the BB
-                    if (sentby == "{{my_username}}") {
-                        changeOppTurn(); //now opp turn
+                if (dealer == sentby) { //SB called the BB
+                    if (sentby == "{{username}}") {
                         var prev_bet_amount = parseInt(my_chips_bet.innerHTML, 10);
                         my_chips_bet.innerHTML = prev_bet_amount + parseInt(call_amount);
                         my_stack -= (parseInt(call_amount))
                         my_stack_html.innerHTML = my_stack;
+                        changeOppTurn(); //now opp turn
                     } else {
-                        changeMyTurn(); //now my turn
                         var prev_bet_amount = parseInt(opp_chips_bet.innerHTML, 10);
+                        //alert("before" + prev_bet_amount);
                         opp_chips_bet.innerHTML = prev_bet_amount + parseInt(call_amount);
+                        //alert("after" + opp_chips_bet.innerHTML);
                         opp_stack -= (parseInt(call_amount))
                         opp_stack_html.innerHTML = opp_stack;
+                        changeMyTurn(); //now my turn
                     }
                     
             
-                    if (move > 1) { //SB called BB raise
+                    if (move > 3) { //SB called BB raise
                         doFlop();
                         swapTurnsAfterFlop();
                         needFlop = false;
@@ -469,7 +493,7 @@
                     doFlop();
                     needFlop = false;
                     swapTurnsAfterFlop();
-                    if (sentby == "{{my_username}}") {
+                    if (sentby == "{{username}}") {
                         //var prev_bet_amount = parseInt(my_chips_bet.innerHTML, 10);
                         //my_chips_bet.innerHTML = prev_bet_amount + parseInt(call_amount);
                         my_stack -= (parseInt(call_amount))
@@ -484,7 +508,7 @@
             } else if (needTurn) {
                 doTurn();
                 needTurn = false;
-                if (sentby == "{{my_username}}") {
+                if (sentby == "{{username}}") {
                     var prev_bet_amount = parseInt(my_chips_bet.innerHTML, 10);
                     my_chips_bet.innerHTML = prev_bet_amount + parseInt(call_amount);
                     my_stack -= (parseInt(call_amount))
@@ -500,7 +524,7 @@
             } else if (needRiver) {
                 doRiver();
                 needRiver = false;
-                if (sentby == "{{my_username}}") {
+                if (sentby == "{{username}}") {
                     changeOppTurn() //now opp turn
                     var prev_bet_amount = parseInt(my_chips_bet.innerHTML, 10);
                     my_chips_bet.innerHTML = prev_bet_amount + parseInt(call_amount);
@@ -524,17 +548,17 @@
         function changeUIBet(sentby, decision, bet_amount) {
 
             var prev_pot_value = parseInt(pot_size.innerHTML, 10);
-            alert("bet:" + bet_amount);
-            alert("my_chips:" + parseInt(my_chips_bet.innerHTML));
-            alert("opp_chips:" + parseInt(opp_chips_bet.innerHTML));
+            //alert("bet:" + bet_amount);
+            //alert("my_chips:" + parseInt(my_chips_bet.innerHTML));
+            //alert("opp_chips:" + parseInt(opp_chips_bet.innerHTML));
 
-            if (sentby == "{{my_username}}") {
+            if (sentby == "{{username}}") {
                 pot_size.innerHTML = prev_pot_value + parseInt(bet_amount, 10) - parseInt(my_chips_bet.innerHTML);
             } else {
                 pot_size.innerHTML = prev_pot_value + parseInt(bet_amount, 10) - parseInt(opp_chips_bet.innerHTML);
             }
             
-            if (sentby == "{{my_username}}") {
+            if (sentby == "{{username}}") {
                 my_chips_bet_img.hidden = false;
                 my_stack -= (bet_amount - parseInt(my_chips_bet.innerHTML));
                 my_chips_bet.innerHTML =  bet_amount;
@@ -575,8 +599,10 @@
                 } else {
                     swapTurnAfterCheckBet(sentby);
                 }
-            } else {
+            } else if (sentby == dealer) {
                 checkHands();
+            } else {
+                swapTurnAfterCheckBet(sentby);
             }
         }
 
@@ -584,7 +610,7 @@
             move = move + 1;
             hideChips();
             //alert("henefinrifne");
-            if (dealer == "{{my_username}}") {
+            if (dealer == "{{username}}") {
                 changeOppTurn();
             } else {
                 changeMyTurn();
@@ -613,7 +639,7 @@
 
         function swapTurnAfterCheckBet(sentby) {
             //alert("hvyguhu " + sentby);
-            if (sentby == "{{my_username}}") {
+            if (sentby == "{{username}}") {
                 changeOppTurn(); //now opp turn
             } else {
                 changeMyTurn(); //now my turn
@@ -628,6 +654,7 @@
             fold_button.hidden = true;
             bet_amount_input.hidden = true;
 
+            //alert(my_chips_out  + " " + opp_chips_out);
             if (my_chips_out < opp_chips_out) {
                 bet_button.hidden = false;
                 call_button.hidden = false;
@@ -646,11 +673,194 @@
                 bet_amount_input.min = (opp_chips_out * 2);
                 bet_amount_input.value = (opp_chips_out * 2);
             } else {
-                bet_amount_input.min = parseInt(my_stack);
-                bet_amount_input.value = parseInt(my_stack);
+                bet_amount_input.min = parseInt(my_stack) + parseInt(my_chips_bet.innerHTML);
+                bet_amount_input.value = parseInt(my_stack) + parseInt(my_chips_bet.innerHTML);
             }
-            bet_amount_input.max = parseInt(my_stack);
+            bet_amount_input.max = parseInt(my_stack) + parseInt(my_chips_bet.innerHTML);
         }
+
+
+        //Poker winnning hand logic
+        function checkHands() {
+            var rankings = ["royal_flush","straight_flush","quads", "full_house", "flush","straight","three_of_a_kind",
+            "two_pair","one_pair","high_card"];
+
+            var cards = ['2_of_hearts','3_of_hearts','4_of_hearts','5_of_hearts','6_of_hearts','7_of_hearts','8_of_hearts','9_of_hearts','10_of_hearts','jack_of_hearts','queen_of_hearts','king_of_hearts','ace_of_hearts',
+             '2_of_clubs','3_of_clubs','4_of_clubs','5_of_clubs','6_of_clubs','7_of_clubs','8_of_clubs','9_of_clubs','10_of_clubs','jack_of_clubs','queen_of_clubs','king_of_clubs','ace_of_clubs',
+             '2_of_spades','3_of_spades','4_of_spades','5_of_spades','6_of_spades','7_of_spades','8_of_spades','9_of_spades','10_of_spades','jack_of_spades','queen_of_spades','king_of_spades','ace_of_spades',
+             '2_of_diamonds','3_of_diamonds','4_of_diamonds','5_of_diamonds','6_of_diamonds','7_of_diamonds','8_of_diamonds','9_of_diamonds','10_of_diamonds','jack_of_diamonds','queen_of_diamonds','king_of_diamonds','ace_of_diamonds'];
+
+            var card_highs = ["2","3","4","5","6","7","8","9","10","jack","queen","king","ace"];
+
+            //my hand
+            var my_hand = getHand(cards,card_highs,my_card1,my_card2);
+
+            //opp hand
+            var opp_hand = getHand(cards,card_highs,opp_card1,opp_card2);
+
+        }
+
+        function getHand(cards,card_highs,card1,card2) {
+
+            var cards_left = [card1,card2,flop_card1,flop_card2,flop_card3,turn_card,river_card];
+
+            var royal_flush = checkRoyalFlush(cards,card_highs,card1,card2,cards_left);
+            if (royal_flush != null) {
+                return royal_flush;
+            } 
+
+            var straight_flush = checkStraightFlush(cards,card_highs,card1,card2,cards_left);
+            if (straight_flush != null) {
+                return straight_flush;
+            } 
+
+            var quads = checkQuads(cards,card_highs,card1,card2,cards_left);
+            if (quads != null) {
+                return quads;
+            }
+
+            var full_house = checkFullHouse(cards,card_highs,card1,card2,cards_left);
+            if (full_house != null) {
+                return full_house;
+            }
+
+            var flush = checkFlush(cards,card_highs,card1,card2,cards_left);
+            if (full_house != null) {
+                return full_house;
+            }
+
+            var straight = checkStraight(cards,card_highs,card1,card2,cards_left);
+            if (straight != null) {
+                return straight;
+            }
+
+            var three_of_a_kind = checkThreeOfAKind(cards,card_highs,card1,card2,cards_left);
+            if (three_of_a_kind != null) {
+                return three_of_a_kind;
+            }
+
+            var two_pair = checkTwoPair(cards,card_highs,card1,card2,cards_left);
+            if (two_pair != null) {
+                return two_pair;
+            }
+
+            var one_pair = checkOnePair(cards,card_highs,card1,card2,cards_left);
+            if (one_pair != null) {
+                return one_pair;
+            }
+
+            var high_card = checkHighCard(cards,card_highs,card1,card2,cards_left);
+            if (high_card != null) {
+                return high_card;
+            }
+
+        }
+
+        function checkRoyalFlush(cards,card_highs,card1,card2,cards_left) {
+            if (checkFlush(cards,card_highs,card1,card2) != null && checkStraight(cards,card_highs,card1,card2) != null) {
+                if 
+            }
+
+            return null;
+
+        }
+
+        function checkStraightFlush(cards,card_highs,card1,card2,cards_left) {
+            if (checkFlush(cards,card_highs,card1,card2) != null && checkStraight(cards,card_highs,card1,card2) != null) {
+                return checkStraight(cards,card_highs,card1,card2);
+            }
+
+            return null;
+        }
+
+        function checkQuads(cards,card_highs,card1,card2,cards_left) {
+
+            cards_left = cards_left.sort();
+            for (i = 0; i < 4; i++) {
+                if (cards_left[i].charAt(i) == cards_left[i].charAt(i+3)) {
+                    return cards_left[i];
+                }
+            }
+
+            return null;
+
+        }
+
+        function checkFullHouse(cards,card_highs,card1,card2,cards_left) {
+
+            var three_kind = checkThreeOfAKind(cards,card_highs,card1,card2);
+            cards_left = cards_left.sort();
+            if (three_kind != null) {
+                for (i = 0; i < 4; ++i) {
+                    if (cards_left[i] == three_kind) {
+                        var reduced_cards = cards_left.splice(i,i+3);
+                        break;
+                    }
+                }
+            } else {
+                return null;
+            }
+
+            var pair = checkOnePair(cards,card_highs,card1,card2,reduced_cards);
+
+            if (pair != null) {
+                return three_kind + " " + pair;
+            }
+
+            return null;
+
+        }
+
+        function checkFlush(cards,card_highs,card1,card2,cards_left) {
+            cards_left = cards_left.sort(compareFunction);
+
+            for (i = 0; i < 3; ++i) {
+                var n1 = cards_left[i].indexOf("_");
+                var n2 = cards_left[i+4].indexOf("_");
+                if (cards_left[i].substring(n1,cards_left[i].length) == cards_left[i+4]substring(n2,cards_left[i+4].length)) {
+                    return "yes"
+                }
+            }
+
+            return null;
+        }
+
+        function compareFunction(a,b) {
+            var n1 = a.indexOf("_");
+            var n2 = b.indexOf("_");
+            return a.substring(n1,a.length) < b.substring(n2,b.length);
+        }
+
+        function checkStraight(cards,card_highs,card1,card2,cards_left) {
+            cards_left = cards_left.sort();
+
+            
+
+        }
+
+        function checkThreeOfAKind(cards,card_highs,card1,card2,cards_left) {
+            cards_left = cards_left.sort();
+
+            for (i = 0; i < 5; i++) {
+                if (cards_left[i].charAt(i) == cards_left[i].charAt(i+2)) {
+                    return cards_left[i];
+                }
+            }
+        }
+
+        function checkTwoPair(cards,card_highs,card1,card2,cards_left) {
+
+        }
+
+        function checkOnePair(cards,card_highs,card1,card2, cards_left) {
+            if 
+
+        }
+
+        function checkHighCard(cards,card_highs,card1,card2,cards_left) {
+
+        }
+
 
     </script>
 </body>
