@@ -13,13 +13,13 @@ card_highs = ["2","3","4","5","6","7","8","9","10","jack","queen","king","ace"]
 #Poker winning hand logic
 def checkHands():
     #my hand
-    cards = ['10_of_hearts','4_of_spades','2_of_diamonds','2_of_clubs','2_of_clubs','7_of_clubs','8_of_hearts']
+    cards = ['queen_of_hearts','queen_of_spades','6_of_hearts','4_of_hearts','2_of_hearts','ace_of_clubs','7_of_diamonds']
     my_hand = getHand(cards)
     print("hand",my_hand)
     
     if "two_pair" in my_hand or "quads" in my_hand:
         my_hand = get_other_high_cards(1, my_hand, cards)
-    elif "one_pair" in my_hand:
+    elif "pair" in my_hand:
         my_hand = get_other_high_cards(3, my_hand, cards)
     elif "three_of_a_kind" in my_hand:
         my_hand = get_other_high_cards(2, my_hand, cards)
