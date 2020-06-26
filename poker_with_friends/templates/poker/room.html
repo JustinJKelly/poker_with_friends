@@ -207,9 +207,6 @@
         var move = 1;
         var timer = null;
         
-
-        
-
         var hand = 1;
         var needFlop = true;
         var needTurn = true;
@@ -232,6 +229,9 @@
         card2.src = "/static/img/" + my_card2 + ".png";
         var opp_card1 = "{{opp_card1}}";
         var opp_card2 = "{{opp_card2}}";
+
+        //poker info
+        var card_highs = ["2","3","4","5","6","7","8","9","10","jack","queen","king","ace"];
 
         if (dealer == "{{username}}") {
             var my_turn = true;
@@ -681,7 +681,7 @@
 
 
         //Poker winnning hand logic
-        function checkHands() {
+        /*function checkHands() {
             var rankings = ["royal_flush","straight_flush","quads", "full_house", "flush","straight","three_of_a_kind",
             "two_pair","one_pair","high_card"];
 
@@ -825,6 +825,7 @@
             return null;
         }
 
+        //sort by suit
         function compareFunction(a,b) {
             var n1 = a.indexOf("_");
             var n2 = b.indexOf("_");
@@ -832,9 +833,26 @@
         }
 
         function checkStraight(cards,card_highs,card1,card2,cards_left) {
-            cards_left = cards_left.sort();
+            cards_left = cards_left.sort(compareFunction2);
 
-            
+            for (i = 0; i < cards_left.length-4; ++i) {
+                var n1 = cards_left[i].indexOf("_");
+                var sub1 = a.substring(0,n1);
+
+                for (j = i+1; j < i+5; ++j) {
+                    var n2 = cards_left[j].indexOf("_");
+                    var sub2 = cards_left[j].substring(0,n2);
+                    if ( (card_highs.indexOf(sub2)-card_highs.indexOf(sub1)) != 1) {
+                        break;
+                    } else if (i+4 == j) {
+                        return cards_left[i] + " "  + cards_left[j];
+                    } else {
+                        sub1 = sub2;
+                    }
+                }
+            }
+
+            return null;
 
         }
 
@@ -849,17 +867,53 @@
         }
 
         function checkTwoPair(cards,card_highs,card1,card2,cards_left) {
+            cards_left = cards_left.sort(compareFunction2);
 
+            var found_pair = checkOnePair(cards,card_highs,card1,card2, cards_left);
+            
+            if (found_pair != null) {
+                for (i = 0; i < cards_left.length-1; ++i) {
+                    if (cards_left[i] == found_pair) {
+                        var reduced_cards = cards_left.splice(i,i+2);
+                        break;
+                    }
+                }
+            }
+
+            var found_other_pair = checkOnePair(cards,card_highs,card1,card2, reduced_cards);
+            if (found_pair != null) {
+                return found_other_pair + " " + found_pair;
+            }
+
+            return null;
         }
 
         function checkOnePair(cards,card_highs,card1,card2, cards_left) {
-            if 
+            cards_left = cards_left.sort(compareFunction2);
 
+            for (i = 0; i < cards_left.length-1; ++i) {
+                if (cards_left[i] == cards_left[i+1]) {
+                    return cards_left[i];
+                }
+            }
+
+            return null;
+        }
+
+        //sort by card high
+        function compareFunction2(a,b) {
+            var n1 = a.indexOf("_");
+            var n2 = b.indexOf("_");
+
+            var sub1 = a.substring(0,n1);
+            var sub2 = a.substring(0,n2);
+            return card_highs[a.substring(0,n1)] < card_highs[b.substring(0,n2)];
         }
 
         function checkHighCard(cards,card_highs,card1,card2,cards_left) {
-
-        }
+            cards_left = cards_left.sort(compareFunction2);
+            return cards_left[cards_left.length-1];
+        }*/
 
 
     </script>
