@@ -162,13 +162,13 @@
             + '/playerDecision/{{username}}/'
         );
 
-        /*const handWinnerSocket = new WebSocket(
+        const handWinnerSocket = new WebSocket(
             'ws://'
             + window.location.host
             + '/ws/poker/'
             + roomName
-            + '/handWinner/'
-        );*/
+            + '/getHandWinner/'
+        );
 
         var decision_time = 30;//"{{decision_time}}";
         var opp_last_move = null;
@@ -213,16 +213,16 @@
         var needRiver = true;
         var dealer = "{{dealer}}";
 
-        var flopCard1 = "{{flop_card1}}";
-        flop1.src = "/static/img/" + flopCard1 + ".png";
-        var flopCard2 = "{{flop_card2}}";
-        flop2.src = "/static/img/" + flopCard2 + ".png";
-        var flopCard3 = "{{flop_card3}}";
-        flop3.src = "/static/img/" + flopCard3 + ".png";
-        var turnCard = "{{turn_card}}";
-        turn.src = "/static/img/" + turnCard + ".png";
-        var riverCard = "{{river_card}}";
-        river.src = "/static/img/" + riverCard + ".png";
+        var flop_card1 = "{{flop_card1}}";
+        flop1.src = "/static/img/" + flop_card1 + ".png";
+        var flop_card2 = "{{flop_card2}}";
+        flop2.src = "/static/img/" + flop_card2 + ".png";
+        var flop_card3 = "{{flop_card3}}";
+        flop3.src = "/static/img/" + flop_card3 + ".png";
+        var turn_card = "{{turn_card}}";
+        turn.src = "/static/img/" + turn_card + ".png";
+        var river_card = "{{river_card}}";
+        river.src = "/static/img/" + river_card + ".png";
         var my_card1 = "{{card1}}";
         card1.src = "/static/img/" + my_card1 + ".png";
         var my_card2 = "{{card2}}";
@@ -311,6 +311,7 @@
         //START POKER DATA PATH
         check_button.onclick = function(e) {
             //myStopFunction(); //stop timer
+            updateUI("check", null,null);
             playerDecisionSocket.send(JSON.stringify({
                 'sentby': "{{username}}",
                 'decision': "check",
@@ -323,39 +324,53 @@
             call_amount = parseInt(opp_chips_bet.innerHTML,10) - prev_value; //get the amount left to call
             //alert(prev_value + " " + call_amount);
 
+            updateUI("call", call_amount,null);
             //send a message with the bet to the socket
-            playerDecisionSocket.send(JSON.stringify({
+            /*playerDecisionSocket.send(JSON.stringify({
                 'sentby': "{{username}}",
                 'decision': "call",
                 'callamount': call_amount,
-            }));
+            }));*/
             
         }
 
         fold_button.onclick = function(e) {
             //myStopFunction();
+            /*playerDecisionSocket.send(JSON.stringify({
+                'sentby': "{{username}}",
+                'decision': "fold",
+            }));*/
         }
 
         bet_button.onclick = function(e) {
             //myStopFunction();
             bet_amount = bet_amount_input.value;
+            updateUI("bet",null,bet_amount);
 
             //send a message with the bet to the socket
-            playerDecisionSocket.send(JSON.stringify({
+           /* playerDecisionSocket.send(JSON.stringify({
                 'sentby': "{{username}}",
                 'decision': "bet",
                 'betamount': bet_amount,
-            }));
+            }));*/
             
         }
 
-        //receive a message from the socket
-        playerDecisionSocket.onmessage = function(e) {
+        handWinnerSocket.onmessage = function(e) {
 
-            const data = JSON.parse(e.data);
+        }
+
+        //receive a message from the socket
+        //playerDecisionSocket.onmessage = function(e) {
+
+        function updateUI(decision,call_amount,bet_amount) {
+
+            /*const data = JSON.parse(e.data);
             var decision = data.decision;
-            var sentby = data.sentby;
+            var sentby = data.sentby;*/
             //alert("sent by:" + data.sentby + "  decision:" + data.decision);
+
+
 
             if (decision == "bet") {
                 var bet_amount = data.betamount;
@@ -680,6 +695,24 @@
         }
 
 
+        function checkHands() {
+            var my_cards = [my_card1,my_card2];
+            var opp_cards = [opp_card1,opp_card2];
+            var flop = [flop_card1,flop_card2,flop_card3];
+
+            handWinnerSocket.send(JSON.stringify({
+                'sentby': "{{username}}",
+                'sentby_cards': my_cards,
+                'opp_cards': opp_cards,
+                'flop_cards': flop,
+                'turn_card': turn_card,
+                'river_card': river_card,
+                'opp_username': "{{opp_username}}",
+                'table_name': "{{room_name}}",
+                'current_dealer': dealer,
+            }));
+
+        }
         //Poker winnning hand logic
         /*function checkHands() {
             var rankings = ["royal_flush","straight_flush","quads", "full_house", "flush","straight","three_of_a_kind",

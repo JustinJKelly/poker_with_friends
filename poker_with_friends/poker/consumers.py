@@ -213,3 +213,135 @@ class PlayerDecisionConsumer(WebsocketConsumer):
             'sentby': sentby,
             'decision':decision,
         }))
+        
+class PlayerFoldedConsumer(WebsocketConsumer):
+    def connect(self):
+        self.room_name = self.scope['url_route']['kwargs']['room_name']
+        self.room_group_name = 'playerFolded_%s' % self.room_name
+
+        async_to_sync(self.channel_layer.group_add)(
+            self.room_group_name,
+            self.channel_name
+        )
+
+        self.accept()
+    
+    def disconnect(self, close_code):
+        # Leave room group
+        async_to_sync(self.channel_layer.group_discard)(
+            self.room_group_name,
+            self.channel_name
+        )
+
+
+    '''
+    handWinnerSocket.send(JSON.stringify({
+        'sentby': "{{username}}",
+        'sentby_cards': my_cards,
+        'opp_cards': opp_cards,
+        'flop_cards': flop,
+        'turn_card': turn_card,
+        'river_card': river_card,
+        'opp_username': "{{opp_username}}",
+    }));
+    '''
+    # Receive message from WebSocket
+    def receive(self, text_data):
+        text_data_json = json.loads(text_data)
+        sentby = text_data_json['sentby']
+        sentby_cards = text_data_json['sentby_cards']
+        other_cards = text_data_json['opp_cards']
+        other_username = text_data_json['opp_username']
+        flop_cards = text_data_json['flop_cards']
+        turn_card = text_data_json['turn_card']
+        river_card = text_data_json['river_card']
+        current_dealer = text_data_json['current_dealer']
+        print(sentby, ' ', sentby_cards, ' ', other_cards, ' ', other_username, ' ', flop_cards, ' ', turn_card, ' ', river_card, ' ', current_dealer)
+
+        # Send message to room group
+        async_to_sync(self.channel_layer.group_send)(
+            self.room_group_name,
+            {
+                'type': 'send_winner',
+                'sentby': sentby,
+                'sentby_cards': sentby_cards,
+                'other_cards': other_cards,
+                'other_username': other_username,
+                'flop_cards': flop_cards,
+                'turn_card': turn_card,
+                'river_card': river_card,
+                'current_dealer': current_dealer,
+            }
+        )
+
+    def send_winner(self, event):
+        
+        # Send message to WebSocket
+        self.send(text_data=json.dumps({
+        }))
+    
+        
+class CheckHandWinnerConsumer(WebsocketConsumer):
+    def connect(self):
+        self.room_name = self.scope['url_route']['kwargs']['room_name']
+        self.room_group_name = 'checkHand_%s' % self.room_name
+
+        async_to_sync(self.channel_layer.group_add)(
+            self.room_group_name,
+            self.channel_name
+        )
+
+        self.accept()
+    
+    def disconnect(self, close_code):
+        # Leave room group
+        async_to_sync(self.channel_layer.group_discard)(
+            self.room_group_name,
+            self.channel_name
+        )
+
+
+    '''
+    handWinnerSocket.send(JSON.stringify({
+        'sentby': "{{username}}",
+        'sentby_cards': my_cards,
+        'opp_cards': opp_cards,
+        'flop_cards': flop,
+        'turn_card': turn_card,
+        'river_card': river_card,
+        'opp_username': "{{opp_username}}",
+    }));
+    '''
+    # Receive message from WebSocket
+    def receive(self, text_data):
+        text_data_json = json.loads(text_data)
+        sentby = text_data_json['sentby']
+        sentby_cards = text_data_json['sentby_cards']
+        other_cards = text_data_json['opp_cards']
+        other_username = text_data_json['opp_username']
+        flop_cards = text_data_json['flop_cards']
+        turn_card = text_data_json['turn_card']
+        river_card = text_data_json['river_card']
+        current_dealer = text_data_json['current_dealer']
+        print(sentby, ' ', sentby_cards, ' ', other_cards, ' ', other_username, ' ', flop_cards, ' ', turn_card, ' ', river_card, ' ', current_dealer)
+
+        # Send message to room group
+        async_to_sync(self.channel_layer.group_send)(
+            self.room_group_name,
+            {
+                'type': 'send_winner',
+                'sentby': sentby,
+                'sentby_cards': sentby_cards,
+                'other_cards': other_cards,
+                'other_username': other_username,
+                'flop_cards': flop_cards,
+                'turn_card': turn_card,
+                'river_card': river_card,
+                'current_dealer': current_dealer,
+            }
+        )
+
+    def send_winner(self, event):
+        # Send message to WebSocket
+        self.send(text_data=json.dumps({
+        }))
