@@ -1,7 +1,7 @@
 import copy
 
 rankings = ["royal_flush","straight_flush","quads", "full_house", "flush","straight","three_of_a_kind",
-    "two_pair","one_pair","high_card"]
+    "two_pair","pair","high_card"]
 
 cards = ['2_of_hearts','3_of_hearts','4_of_hearts','5_of_hearts','6_of_hearts','7_of_hearts','8_of_hearts','9_of_hearts','10_of_hearts','jack_of_hearts','queen_of_hearts','king_of_hearts','ace_of_hearts',
 '2_of_clubs','3_of_clubs','4_of_clubs','5_of_clubs','6_of_clubs','7_of_clubs','8_of_clubs','9_of_clubs','10_of_clubs','jack_of_clubs','queen_of_clubs','king_of_clubs','ace_of_clubs',
@@ -10,21 +10,42 @@ cards = ['2_of_hearts','3_of_hearts','4_of_hearts','5_of_hearts','6_of_hearts','
 
 card_highs = ["2","3","4","5","6","7","8","9","10","jack","queen","king","ace"]
 
+
+#checkHands(player1,player1_cards,player2,player2_cards,flop_cards,turn_card_river_card)
 #Poker winning hand logic
-def checkHands():
+def checkHands(player1,player1_cards,player2,player2_cards,flop_cards,turn_card,river_card):
     #my hand
-    cards = ['queen_of_hearts','queen_of_spades','6_of_hearts','4_of_hearts','2_of_hearts','ace_of_clubs','7_of_diamonds']
-    my_hand = getHand(cards)
-    print("hand",my_hand)
+    player1_cards = player1_cards + flop_cards + [turn_card,river_card] #['queen_of_hearts','queen_of_spades','6_of_hearts','4_of_hearts','2_of_hearts','ace_of_clubs','7_of_diamonds']
+    player1_hand = getHand(player1_cards)
     
-    if "two_pair" in my_hand or "quads" in my_hand:
-        my_hand = get_other_high_cards(1, my_hand, cards)
-    elif "pair" in my_hand:
-        my_hand = get_other_high_cards(3, my_hand, cards)
-    elif "three_of_a_kind" in my_hand:
-        my_hand = get_other_high_cards(2, my_hand, cards)
+    if "two_pair" in player1_hand or "quads" in player1_hand:
+        player1_hand = get_other_high_cards(1, player1_hand, cards)
+    elif "pair" in player1_hand:
+        player1_hand = get_other_high_cards(3, player1_hand, cards)
+    elif "three_of_a_kind" in player1_hand:
+        player1_hand = get_other_high_cards(2, player1_hand, cards)
         
-    print("hand",my_hand)
+    print("hand:",player1_hand)
+    
+    player2_cards = player2_cards + flop_cards + [turn_card,river_card] #['queen_of_hearts','queen_of_spades','6_of_hearts','4_of_hearts','2_of_hearts','ace_of_clubs','7_of_diamonds']
+    player2_hand = getHand(player2_cards)
+    
+    if "two_pair" in player2_hand or "quads" in player2_hand:
+        player2_hand = get_other_high_cards(1, player2_hand, cards)
+    elif "pair" in player2_hand:
+        player2_hand = get_other_high_cards(3, player2_hand, cards)
+    elif "three_of_a_kind" in player2_hand:
+        player2_hand = get_other_high_cards(2, player2_hand, cards)
+        
+    print("hand:",player2_hand)
+
+    player1_hand_strength = rankings.index(player1_hand[0])
+    player2_hand_strength = rankings.index(player2_hand[0])
+    
+    if player1_hand_strength < player2_hand_strength:
+        return [player1,player1_hand,player2_hand]
+    else:
+        return [player2,player1_hand,player2_hand]
 
     #opp hand
     #opp_hand = getHand(['2_of_hearts','3_of_hearts','4_of_hearts','5_of_hearts','6_of_hearts','7_of_hearts','8_of_hearts'])
@@ -267,7 +288,7 @@ def comparefunction2(a):
 
 def checkHighCard(cards_left):
     cards_left.sort(key=comparefunction2, reverse=True)
-    return cards_left[0:5]
+    return ["high_card"] + cards_left[0:5]
 
 
 if __name__ == "__main__":

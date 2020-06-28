@@ -4,6 +4,7 @@ from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 from channels_presence.models import Room
 from .models import Table
+from .poker_hand import checkHands
 
 #NEEDED DIFFERENT GROUP NAMES
 class ChatConsumer(WebsocketConsumer):
@@ -256,6 +257,7 @@ class PlayerFoldedConsumer(WebsocketConsumer):
         turn_card = text_data_json['turn_card']
         river_card = text_data_json['river_card']
         current_dealer = text_data_json['current_dealer']
+        #room_name = text_data_json['room_name']
         print(sentby, ' ', sentby_cards, ' ', other_cards, ' ', other_username, ' ', flop_cards, ' ', turn_card, ' ', river_card, ' ', current_dealer)
 
         # Send message to room group
@@ -323,6 +325,7 @@ class CheckHandWinnerConsumer(WebsocketConsumer):
         turn_card = text_data_json['turn_card']
         river_card = text_data_json['river_card']
         current_dealer = text_data_json['current_dealer']
+        table_name = text_data_json['table_name']
         print(sentby, ' ', sentby_cards, ' ', other_cards, ' ', other_username, ' ', flop_cards, ' ', turn_card, ' ', river_card, ' ', current_dealer)
 
         # Send message to room group
@@ -338,10 +341,50 @@ class CheckHandWinnerConsumer(WebsocketConsumer):
                 'turn_card': turn_card,
                 'river_card': river_card,
                 'current_dealer': current_dealer,
+                'table_name':table_name
             }
         )
 
     def send_winner(self, event):
         # Send message to WebSocket
-        self.send(text_data=json.dumps({
-        }))
+        table_name = event['table_name']
+        
+        table = Table.objects.get(table_name=table_name)
+        #checkHands(player1,player1_cards,player2,player2_cards,flop_cards,turn_card_river_card)
+        sentby = event['sentby']
+        sentby_cards = event['sentby_cards']
+        other_cards = event['other_cards']
+        other_username = event['other_username']
+        flop_cards = event['flop_cards']
+        turn_card = event['turn_card']
+        river_card = event['river_card']
+        
+        hand_info = checkHands(sentby,sentby_cards,other_username,other_cards,flop_cards,turn_card,river_card)
+        print(hand_info)
+        current_dealer = event['current_dealer']
+        
+        winner = hand_info[0]
+        print(winner)
+        
+        if current_dealer == sentby:
+            new_dealer = other_username
+        else:
+            new_dealer = sentby
+        
+        
+        if table.player1 == sentby:
+            self.send(text_data=json.dumps({
+                "new_dealer": new_dealer,
+                "winner": winner,
+                "sentby_hand": hand_info[1][0],
+                "sentby_hand_cards": hand_info[1][1:],
+                "other_hand": hand_info[2][0],
+                "other_hand_cards": hand_info[2][1:],
+                "sentby":sentby,
+            }))
+            
+        else:
+            self.send(text_data=json.dumps({
+                "data":"nothing",
+            }))
+            
