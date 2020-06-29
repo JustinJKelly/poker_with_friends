@@ -9,4 +9,5 @@ websocket_urlpatterns = [
     re_path(r'ws/poker/(?P<room_name>\w+)/playerDecision/(?P<username>\w+)/$', consumers.PlayerDecisionConsumer),
     re_path(r'ws/poker/(?P<room_name>\w+)/getHandWinner/$', consumers.CheckHandWinnerConsumer),
     re_path(r'ws/poker/(?P<room_name>\w+)/fold/$', consumers.PlayerFoldedConsumer),
+    re_path(r'ws/poker/(?P<room_name>\w+)/dealNewHand/$', consumers.DealNewHandConsumer),
 ]

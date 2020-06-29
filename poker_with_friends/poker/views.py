@@ -92,16 +92,18 @@ def room(request, room_name):
     
     context = {}
     table = Table.objects.get(table_id=request.session.get('table_id'))
+    print("look here",table.table_name)
     
     if table.player2 == "none":
         cards = deal_cards(2)
         
-        context['flop_card1'] = cards[4]
+        '''context['flop_card1'] = cards[4]
         context['flop_card2'] = cards[5]
         context['flop_card3'] = cards[6]
         context['pot_size'] = table.pot_size
         context['turn_card'] = cards[7]
-        context['river_card'] = cards[8]
+        context['river_card'] = cards[8]'''
+        print(cards, " ")
         
         table.player1_card1 = cards[0]
         table.player1_card2 = cards[1]

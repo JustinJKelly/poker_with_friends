@@ -43,9 +43,11 @@ def checkHands(player1,player1_cards,player2,player2_cards,flop_cards,turn_card,
     player2_hand_strength = rankings.index(player2_hand[0])
     
     if player1_hand_strength < player2_hand_strength:
-        return [player1,player1_hand,player2_hand]
+        return [player1,player1_hand[0],player1_hand,player2_hand]
+    elif player1_hand_strength == player2_hand_strength:
+        return ["both",player1_hand[0],player1_hand,player2_hand]
     else:
-        return [player2,player1_hand,player2_hand]
+        return [player2,player2_hand[0],player1_hand,player2_hand]
 
     #opp hand
     #opp_hand = getHand(['2_of_hearts','3_of_hearts','4_of_hearts','5_of_hearts','6_of_hearts','7_of_hearts','8_of_hearts'])
@@ -70,7 +72,7 @@ def getHand(cards_left):
     print("not royal")
     straight_flush = checkStraightFlush(cards_left)
     if straight_flush != None:
-        return "straight_flush " + straight_flush
+        return straight_flush
 
     print("not straight flush")
     quads = checkQuads(cards_left)
@@ -115,20 +117,48 @@ def getHand(cards_left):
     print("high card")    
 
 def checkRoyalFlush(cards_left):
-    '''if (checkFlush(card1,card2) != None && checkStraight(card1,card2) != None) {
-        if 
-    }'''
-
-    if len(cards_left) == 1000:
-        return "yes"
     
+    cards_left.sort(key=comparefunction2,reverse=True)
+    cards_left.sort(key=comparefunction)
+    royal_flushes = [ ['ace_of_diamonds','king_of_diamonds', 'queen_of_diamonds', 'jack_of_diamonds', '10_of_diamonds'],
+                         ['ace_of_club','king_of_clubs', 'queen_of_clubs', 'jack_of_clubs', '10_of_clubs'],
+                         ['ace_of_hearts','king_of_hearts', 'queen_of_hearts', 'jack_of_hearts', '10_of_hearts'],
+                         ['ace_of_spades','king_of_spades', 'queen_of_spades', 'jack_of_spades', '10_of_spades']
+                        ]
+
+    for i in range(0,3):
+        if cards_left[i:i+5] in royal_flushes:
+            hand = ["royal_flush"]
+            hand += cards_left[i:i+5]
+            return hand
+
     return None
 
 
 def checkStraightFlush(cards_left):
     #print(cards_left)
-    if checkFlush(cards_left) != None and checkStraight(cards_left) != None:
-        return checkStraight(cards_left)
+    cards_left.sort(key=comparefunction2,reverse=True)
+    cards_left.sort(key=comparefunction)
+
+    for i in range(0,len(cards_left)-4):
+        n1 = cards_left[i].find("_")
+        sub1 = cards_left[i][0:n1]
+        suit1 = cards_left[i][n1:]
+        for j in range(i+1,i+5):
+            n2 = cards_left[j].find("_")
+            sub2 = cards_left[j][0:n2]
+            suit2 = cards_left[j][n2:]
+            #print("straight:",card_highs.index(sub2), ' ',card_highs.index(sub1))
+            
+            if (card_highs.index(sub1) - card_highs.index(sub2)) != 1 or suit1 != suit2:
+                break
+            elif i+4 == j:
+                hand = ["straight_flush"]
+                hand += cards_left[i:i+5]
+                return hand
+            else:
+                sub1 = sub2
+                suit1 = suit2
 
     return None
 
@@ -153,7 +183,7 @@ def checkFullHouse(cards_left):
     three_kind = checkThreeOfAKindForFullHouse(copy_cards)
     
     if three_kind != None:
-        for i in range(0,4):
+        for i in range(0,7):
             if copy_cards[i][0] == three_kind[0][0]:
                 del copy_cards[i:i+3]
                 break
@@ -166,12 +196,14 @@ def checkFullHouse(cards_left):
         hand = ["full_house"]
         hand += three_kind 
         hand += pair
+        print("HFRIHF")
         return hand
 
     return None
 
 
 def checkFlush(cards_left):
+    cards_left.sort(key=comparefunction2,reverse=True)
     cards_left.sort(key=comparefunction)
     print(cards_left)
 
@@ -191,7 +223,7 @@ def comparefunction(a):
 
 
 def checkStraight(cards_left):
-    cards_left.sort(key=comparefunction2)
+    cards_left.sort(key=comparefunction2, reverse=True)
     print(cards_left)
 
     for i in range(0,len(cards_left)-4):
@@ -202,7 +234,7 @@ def checkStraight(cards_left):
             sub2 = cards_left[j][0:n2]
             #print("straight:",card_highs.index(sub2), ' ',card_highs.index(sub1))
             
-            if (card_highs.index(sub2) - card_highs.index(sub1)) != 1:
+            if (card_highs.index(sub1) - card_highs.index(sub2)) != 1:
                 break
             elif i+4 == j:
                 hand = ["straight"]
@@ -292,4 +324,4 @@ def checkHighCard(cards_left):
 
 
 if __name__ == "__main__":
-    checkHands()
+    print(getHand(['3_of_clubs', '8_of_spades','queen_of_spades','10_of_spades', 'jack_of_spades', '3_of_spades', '9_of_spades']))
