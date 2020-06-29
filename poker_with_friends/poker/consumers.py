@@ -6,6 +6,7 @@ from channels_presence.models import Room
 from .models import Table
 from .poker_hand import checkHands
 from .deal_cards import deal_cards
+from time import sleep
 
 #NEEDED DIFFERENT GROUP NAMES
 class ChatConsumer(WebsocketConsumer):
@@ -353,46 +354,46 @@ class CheckHandWinnerConsumer(WebsocketConsumer):
         sentby = event['sentby']
         
         #skip one so we don't sent the winner multiple times
-        if table.player1 == sentby:
+        #if table.player1 == sentby:
 
-            #checkHands(player1,player1_cards,player2,player2_cards,flop_cards,turn_card_river_card)
-            sentby_cards = event['sentby_cards']
-            other_cards = event['other_cards']
-            other_username = event['other_username']
-            flop_cards = event['flop_cards']
-            turn_card = event['turn_card']
-            river_card = event['river_card']
-            
-            hand_info = checkHands(sentby,sentby_cards,other_username,other_cards,flop_cards,turn_card,river_card)
-            print(hand_info)
-            current_dealer = event['current_dealer']
-            
-            winner = hand_info[0]
-            print(winner)
-            winning_hand = hand_info[1]
-            print(winning_hand)
+        #checkHands(player1,player1_cards,player2,player2_cards,flop_cards,turn_card_river_card)
+        sentby_cards = event['sentby_cards']
+        other_cards = event['other_cards']
+        other_username = event['other_username']
+        flop_cards = event['flop_cards']
+        turn_card = event['turn_card']
+        river_card = event['river_card']
         
-            if current_dealer == sentby:
-                new_dealer = other_username
-            else:
-                new_dealer = sentby
-                
-            self.send(text_data=json.dumps({
-                "new_dealer": new_dealer,
-                "winner": winner,
-                "winning_hand": winning_hand,
-                "sentby_hand": hand_info[2][0],
-                "sentby_hand_cards": hand_info[1][1:],
-                "other_hand": hand_info[3][0],
-                "other_hand_cards": hand_info[2][1:],
-                "sentby":sentby,
-                "skip":"no",
-            }))
-            
+        hand_info = checkHands(sentby,sentby_cards,other_username,other_cards,flop_cards,turn_card,river_card)
+        print('hand info:',hand_info)
+        current_dealer = event['current_dealer']
+        
+        winner = hand_info[0]
+        print(winner)
+        winning_hand = hand_info[1]
+        print(winning_hand)
+    
+        if current_dealer == sentby:
+            new_dealer = other_username
         else:
+            new_dealer = sentby
+            
+        self.send(text_data=json.dumps({
+            "new_dealer": new_dealer,
+            "winner": winner,
+            "winning_hand": winning_hand,
+            "sentby_hand": hand_info[2][0],
+            "sentby_hand_cards": hand_info[1][1:],
+            "other_hand": hand_info[3][0],
+            "other_hand_cards": hand_info[2][1:],
+            "sentby":sentby,
+            "skip":"no",
+        }))
+            
+        '''else:
             self.send(text_data=json.dumps({
                 "skip":"yes",
-            }))
+            }))'''
             
 
 class DealNewHandConsumer(WebsocketConsumer):
@@ -460,6 +461,9 @@ class DealNewHandConsumer(WebsocketConsumer):
             table.river_card = cards[8]
             
         table.save()
+        
+        sleep(15)
+        print("Done sleeping")
             
         if sentby == table.player1:
             self.send(text_data=json.dumps({
@@ -477,6 +481,9 @@ class DealNewHandConsumer(WebsocketConsumer):
             }))
         else:
             self.send(text_data=json.dumps({
+                "skip":"yes",
+            }))
+            '''self.send(text_data=json.dumps({
                 "sentby": sentby,
                 "sentby_card1": cards[2],
                 "sentby_card2": cards[3],
@@ -488,5 +495,5 @@ class DealNewHandConsumer(WebsocketConsumer):
                 "turn_card": cards[7],
                 "river_card": cards[8],
                 "skip":"no",
-            }))
+            }))'''
             

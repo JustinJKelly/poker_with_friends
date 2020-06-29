@@ -419,46 +419,71 @@
                 if ("{{username}}" == winner) {
                     Swal.fire({
                         title: "You win hand!",
-                        text: winner + " wins the hand with a " + winning_hand + "(" + pot_size.innerHTML + ")",
-                        confirmButtonText: "Go Back"
+                        text: winner + " wins the hand with a " + winning_hand + "(" + parseInt(pot_size.innerHTML) + ")",
+                        confirmButtonText: "Go Back",
+                        timer: 6000
                     });
 
-                    move_log.value += winner + " wins the hand with a " + winning_hand + "(" + pot_size.innerHTML + ")";
+                    move_log.value += "Hand " + hand + ": " + winner + " wins the hand with a " + winning_hand + "(" + parseInt(pot_size.innerHTML) + ")\n";
 
                     var old_stack = parseInt(my_stack_html.innerHTML);
                     my_stack_html.innerHTML = old_stack + parseInt(pot_size.innerHTML);
+                    alert(my_stack_html.innerHTML);
 
                     if (parseInt(opp_stack_html.innerHTML) == 0 ) {
                         Swal.fire({
                             title: "You Won!",
                             text: "{{username}}" + " wins the game",
-                            confirmButtonText: "Go Back"
+                            confirmButtonText: "Go Back",
+                            timer: 6000
                         });
                     }
                     
+                } else if (winner == "both") {
+                    Swal.fire({
+                        title: "Split Pot!",
+                        text: "Hand is a tie!",
+                        confirmButtonText: "Go Back",
+                        timer: 6000
+                    });
+
+                    var split = parseInt(pot_size.innerHTML)/2;
+                    move_log.value += "Hand " + hand + ": Hand is a tie! "+ "(" + split + ")\n";
+
+                    var my_old_stack = parseInt(my_stack_html.innerHTML);
+                    my_stack_html.innerHTML = my_old_stack + split;
+
+                    var opp_old_stack = parseInt(my_stack_html.innerHTML);
+                    opp_stack_html.innerHTML = opp_old_stack + split;
+                
+                
                 } else {
                     Swal.fire({
                         title: "Opp wins hand!",
-                        text: winner + " wins the hand with a " + winning_hand + "\n",
-                        confirmButtonText: "Go Back"
+                        text: winner + " wins the hand with a " + winning_hand + "(" + parseInt(pot_size.innerHTML) + ")\n",
+                        confirmButtonText: "Go Back",
+                        timer: 6000
                     });
 
-                    move_log.value += winner + " wins the hand with a " + winning_hand + "\n";
+                    move_log.value += "Hand " + hand + ": " + winner + " wins the hand with a " + winning_hand + "\n";
 
                     var old_stack = parseInt(opp_stack_html.innerHTML);
                     opp_stack_html.innerHTML = old_stack + parseInt(pot_size.innerHTML);
+                    alert(opp_stack_html.innerHTML);
 
                     if (parseInt(my_stack_html.innerHTML) == 0 ) {
                         Swal.fire({
                             title: "You Lost!",
                             text: "{{opp_username}}" + " wins the game",
-                            confirmButtonText: "Go Back"
+                            confirmButtonText: "Go Back",
+                            timer: 10000
                         });
                     }
                     
                 }
 
                 setEverythingEmpty();
+                hand += 1;
 
                 if (sentby == "{{username}}") {
                     dealNewHand.send(JSON.stringify({
@@ -486,10 +511,11 @@
             "river_card": cards[8],
             "skip":"no",
         */
-        dealNewHand.onmessage = function(e) {
+        dealNewHand.onmessage = async function(e) {
 
-            alert("sleep");
-            doSleep();
+            //alert("sleep");
+            //doSleep();
+            //await new Promise(resolve => setTimeout(resolve, 10000));
 
             alert("new hand");
             const data = JSON.parse(e.data);
@@ -506,48 +532,55 @@
                 var flop_card3 = data.flop_card3;
                 var turn_card = data.turn_card;
                 var river_card = data.river_card;
+                alert(river_card);
+
+                alert(sentby_card1 + " " + sentby_card2 + " " + other_card1 + " " + other_card2);
 
 
                 if (sentby == "{{username}}") {
+                    alert("here");
                     my_card1 = sentby_card1;
                     my_card2 = sentby_card2;
-                    card1.innerHTML = "/static/img/" + my_card1 + ".png";
-                    card2.innerHTML = "/static/img/" + my_card2 + ".png";
+                    card1.src = "/static/img/" + my_card1 + ".png";
+                    card2.src = "/static/img/" + my_card2 + ".png";
 
                     opp_card1 = other_card1;
                     opp_card2 = other_card2;
-                    card1_opp.innerHTML = "/static/img/back_of_card.png";
-                    card2_opp.innerHTML = "/static/img/back_of_card..png";
+                    card1_opp.src = "/static/img/back_of_card.png";
+                    card2_opp.src = "/static/img/back_of_card.png";
 
                 } else {
+                    alert("here2");
                     my_card1 = other_card1;
                     my_card2 = other_card2;
-                    card1.innerHTML = "/static/img/" + my_card1 + ".png";
-                    card2.innerHTML = "/static/img/" + my_card2 + ".png";
+                    card1.src = "/static/img/" + my_card1 + ".png";
+                    card2.src= "/static/img/" + my_card2 + ".png";
 
                     opp_card1 = sentby_card1;
                     opp_card2 = sentby_card2;
-                    card1_opp.innerHTML = "/static/img/back_of_card.png";
-                    card2_opp.innerHTML = "/static/img/back_of_card..png";
+                    card1_opp.src = "/static/img/back_of_card.png";
+                    card2_opp.src = "/static/img/back_of_card..png";
                 }
+
+
+                if ("{{username}}" == dealer) {
+                    setBlinds(true);
+                    changeMyTurn(); //update UI to show it's my turn
+                    setBetAmount();
+                } else {
+                    setBlinds(false);
+                    changeOppTurn(); //update UI to show it's my turn
+                    setBetAmount();
+                }
+
+                flop1.hidden = true;
+                flop2.hidden = true;
+                flop3.hidden = true;
+                turn.hidden = true;
+                river.hidden = true;
+                move_log.value += ( "Cards dealt & blinds set.\n" );
             }
 
-            if ("{{username}}" == dealer) {
-                setBlinds(true);
-                changeMyTurn(); //update UI to show it's my turn
-                setBetAmount();
-            } else {
-                setBlinds(false);
-                changeOppTurn(); //update UI to show it's my turn
-                setBetAmount();
-            }
-
-            flop1.hidden = true;
-            flop2.hidden = true;
-            flop3.hidden = true;
-            turn.hidden = true;
-            river.hidden = true;
-            move_log.value += ( "Cards dealt & blinds set.\n" );
         }
 
         function setEverythingEmpty() {
@@ -558,6 +591,9 @@
             call_button.hidden = true;
             check_button.hidden = true;
             bet_amount_input.hidden = true;
+            needFlop = true;
+            needTurn = true;
+            needRiver = true;
         }
 
         function sleep(ms) {
@@ -819,7 +855,9 @@
                     swapTurnAfterCheckBet(sentby);
                 }
             } else if (sentby == dealer) {
-                checkHands();
+                if ("{{username}}" == dealer) {
+                    checkHands();
+                }
             } else {
                 swapTurnAfterCheckBet(sentby);
             }
@@ -904,17 +942,20 @@
             var opp_cards = [opp_card1,opp_card2];
             var flop = [flop_card1,flop_card2,flop_card3];
 
-            handWinnerSocket.send(JSON.stringify({
-                'sentby': "{{username}}",
-                'sentby_cards': my_cards,
-                'opp_cards': opp_cards,
-                'flop_cards': flop,
-                'turn_card': turn_card,
-                'river_card': river_card,
-                'opp_username': username_opp,
-                'table_name': "{{room_name}}",
-                'current_dealer': dealer,
-            }));
+            
+            if ("{{username}}" == dealer) {
+                handWinnerSocket.send(JSON.stringify({
+                    'sentby': "{{username}}",
+                    'sentby_cards': my_cards,
+                    'opp_cards': opp_cards,
+                    'flop_cards': flop,
+                    'turn_card': turn_card,
+                    'river_card': river_card,
+                    'opp_username': username_opp,
+                    'table_name': "{{room_name}}",
+                    'current_dealer': dealer,
+                }));
+            }
 
         }
         //Poker winnning hand logic
