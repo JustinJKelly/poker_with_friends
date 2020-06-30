@@ -92,7 +92,7 @@
             <center style="margin-left:200px;"> 
                 <h2>{{ room_name}} : {{username}}</h2> 
                 <p> Blinds: {{small_blind}}/{{big_blind}} </p>
-                <p> Decision Time: {{decision_time}} </p>
+                <p hidden> Decision Time: {{decision_time}} </p>
                 <br/>
                 <br/>
                 <br/>
@@ -136,7 +136,7 @@
                         <button hidden style="width:100px;left:50px;" id="fold_button" class="btn btn-primary" type="button">Fold</button>
                         <button hidden style="width:100px;left:50px;" id="bet_button" class="btn btn-primary" type="button">Bet</button>
                         <input id="bet_amount" style="width:70px;height:30px;font-size:16px;" value="0" type="number" min="0" max="100" step="1">
-                        <p id="timer">Time Remaining:<b id="time_remaining"></b></p>
+                        <p id="timer" hidden>Time Remaining:<b id="time_remaining"></b></p>
                 </center>
             </div>
         </div>
@@ -145,7 +145,7 @@
         <p style="font-size:18px;"> Waiting for opp to make decision...</p>
     </center>
 
-    {{ room_name|json_script:"room-name" }}
+     {{ room_name|json_script:"room-name" }}
     <script>
         const roomName = JSON.parse(document.getElementById('room-name').textContent);
 
@@ -188,8 +188,6 @@
             + roomName
             + '/dealNewHand/'
         );
-
-        //const Swal = require('sweetalert2');
 
         var decision_time = 30;//"{{decision_time}}";
         var opp_last_move = null;
@@ -236,8 +234,8 @@
         
         //hand vars
         var move = 1;
-        var my_stack = "{{my_curr_stack}}";
-        var opp_stack = "{{opp_curr_stack}}";
+        var my_stack = parseInt("{{my_curr_stack}}");
+        var opp_stack = parseInt("{{opp_curr_stack}}");
         var hand = 1;
         var needFlop = true;
         var needTurn = true;
@@ -246,7 +244,9 @@
         var username_opp = "{{opp_username}}";
         var my_bet = 0;
         var opp_bet = 0;
-        var pot = '{{pot_size}}';
+        var pot = 0;
+        var big_blind = parseInt("{{big_blind}}");
+        var small_blind = parseInt("{{small_blind}}");
 
         //cards vars
         var flop_card1 = "{{flop_card1}}";
@@ -266,24 +266,26 @@
         var opp_card1 = "{{opp_card1}}";
         var opp_card2 = "{{opp_card2}}";
 
+        //String constants
+        const sentby_stack = `${username}_stack`;
+        const other_stack = `${opp_username}_stack`;
+        const sentby_bet = `${username}_bet`;
+        const other_bet = `${opp_username}_bet`;
 
-        if (dealer == username) {
-            var my_turn = true;
-        } else {
-            var my_turn = false;
-        }
+        /* SOCKET METHODS */
 
-        //start first hand, timer, and set blinds for first hand
+        //start first hand and set blinds for first hand
         newPlayerSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
+            
+            //if all the players are in the room, start the game
             if (data.game_on == "yes") {
-
                 //get rid of waiting screen
                 body.style.backgroundImage = "none";
                 game_on.hidden = false;
 
                 //check whose turn it is
-                if (my_turn) {
+                if (dealer == username) {
                     setBlinds(true); //set blinds where current user is SB
                     changeMyTurn(); //update UI to show it's my turn
                     setBetAmount();
@@ -342,15 +344,19 @@
         };
         //END CHAT
 
-        
+
         //START POKER DATA PATH
         check_button.onclick = function(e) {
             //myStopFunction(); //stop timer
             playerDecisionSocket.send(JSON.stringify({
                 'sentby': username,
                 'decision': "check",
-                "new_turn": opp_username,
-                "pot": pot,
+                'new_turn': opp_username,
+                'sentby_stack': my_stack,
+                'other_stack': opp_stack,
+                'sentby_bet': my_bet,
+                'other_bet': opp_bet,
+                'pot': pot,
             }));
 
         }
@@ -359,18 +365,18 @@
             //myStopFunction();
             var call_amount = opp_bet - my_bet; //get the amount left to call
 
-            var i = `${username}_stack`;
+            alert("will send " + (pot+call_amount));
             //send a message with the bet to the socket
             playerDecisionSocket.send(JSON.stringify({
                 'sentby': username,
                 'decision': "call",
                 'callamount': call_amount,
-                i: my_stack+my_bet-call_amount,
-                `${opp_username}_stack`: opp_stack,
-                `${username}_bet`: call_amount,
-                `${opp_username}_bet`: opp_bet,
-                `new_turn`: opp_username,
-                "pot": pot,
+                'sentby_stack': (my_stack-call_amount),
+                'other_stack': opp_stack,
+                'sentby_bet': (call_amount+my_bet),
+                'other_bet': opp_bet,
+                'new_turn': opp_username,
+                'pot': (pot+call_amount),
             }));
             
         }
@@ -381,24 +387,30 @@
             playerDecisionSocket.send(JSON.stringify({
                 'sentby': username,
                 'decision': "fold",
+                'sentby_stack': my_stack,
+                'other_stack': opp_stack+pot,
+                'sentby_bet': 0,
+                'other_bet': 0,
+                'dealer': dealer,
+                'pot': pot,
             }));
         }
 
         bet_button.onclick = function(e) {
             //myStopFunction();
-            var bet_amount = bet_amount_input.value;
+            var bet_amount = parseInt(bet_amount_input.value);
 
             //send a message with the bet to the socket
             playerDecisionSocket.send(JSON.stringify({
                 'sentby': username,
                 'decision': "bet",
                 'betamount': bet_amount,
-                `${username}_stack`: my_stack+my_bet-bet_amount,
-                `${opp_username}_stack`: opp_stack,
-                `${username}_bet`: bet_amount,
-                `${opp_username}_bet`: opp_bet,
-                "new_turn": opp_username,
-                "pot": pot,
+                'sentby_stack': (my_stack+my_bet-bet_amount),
+                'other_stack': opp_stack,
+                'sentby_bet': bet_amount,
+                'other_bet': opp_bet,
+                'new_turn': opp_username,
+                'pot': (pot+bet_amount) - my_bet,
             }));
             
         }
@@ -409,29 +421,42 @@
             const data = JSON.parse(e.data);
             var decision = data.decision;
             var sentby = data.sentby;
-            my_stack = parseInt(data.`${username}`_stack);
-            opp_stack = parseInt(data.`${opp_username}`_stack);
+
+            if (sentby == username) {
+                my_stack = parseInt(data.sentby_stack);
+                opp_stack = parseInt(data.other_stack);
+                my_bet = parseInt(data.sentby_bet);
+                opp_bet = parseInt(data.other_bet);
+            } else {
+                my_stack = parseInt(data.other_stack);
+                opp_stack = parseInt(data.sentby_stack);
+                my_bet = parseInt(data.other_bet);
+                opp_bet = parseInt(data.sentby_bet);
+            }
+
+            alert("my_stack " + my_stack + "  opp_stack " + opp_stack + "\nmy_bet " + my_bet + " opp_bet " + opp_bet);
 
             my_stack_html.innerHTML = my_stack;
             opp_stack_html.innerHTML = opp_stack;
 
-            my_bet = parseInt(`${username}`_bet);
-            opp_bet = parseInt(`${opp_username}`_bet);
-
             my_chips_bet.innerHTML = my_bet;
             opp_chips_bet.innerHTML = opp_bet;
 
+
             pot = parseInt(data.pot);
+            alert(typeof(pot) + " " +  pot);
             pot_size.innerHTML = pot;
+
+
 
             var turn = data.turn;
             //alert("sent by:" + data.sentby + "  decision:" + data.decision);
 
             if (decision == "bet") {
-                move_log.value += ( sentby + " bets " + bet_amount + "\n" );
+                move_log.value += ( sentby + " bets " + data.betamount + "\n" );
                 changeUIBet(sentby);
             } else if (decision == "call") {
-                move_log.value += ( sentby + " calls " + call_amount + "\n" );
+                move_log.value += ( sentby + " calls " + data.callamount + "\n" );
                 changeUICall(sentby);
             }  else { //check
                 move_log.value += ( sentby + " checks\n" );
@@ -440,102 +465,16 @@
 
         }
 
-        function myStopFunction() {
-            /*if (timer) {
-                clearInterval(timer);
-                timer = null;
-            } else {
-                alert("no timer");
-            }*/
-        }
 
-        function changeOppTurn() {
-            move = move + 1;
-            opp_move_waiting.hidden = false;
-            poker_move.hidden = true;
-            my_turn = true;
-
-            bet_button.hidden = true;
-            call_button.hidden = true;
-            fold_button.hidden = true;
-            check_button.hidden = true;
-        }
-
-        function hideChips() {
-            my_chips_bet.hidden = true;
-            my_chips_bet.innerHTML = 0;
-            my_chips_bet_img.hidden = true;
-
-            opp_chips_bet_img.hidden = true;
-            opp_chips_bet.innerHTML = 0;
-            opp_chips_bet.hidden = true;
-        }
-
-        function changeMyTurn() {
-            move = move + 1;
-            poker_move.hidden = false;
-            opp_move_waiting.hidden = true;
-            my_turn = false;
-
-            /*var sec = 30;
-            timer = setInterval(function(){
-                if (sec < 10) {
-                    display.innerHTML='00:0'+sec;
-                } else {
-                    display.innerHTML='00:'+sec;
-                }
-                sec--;
-                if (sec < 0) {
-                    alert("time up (fold or check)");
-                    myStopFunction();
-                }
-            }, 1000)*/
-
-            setBetAmount();
-        }
-
-        function setBlinds(isDealer) {
-            if (isDealer) {
-                //set blinds
-                my_chips_bet.hidden = false;
-                my_chips_bet.innerHTML = "{{small_blind}}";
-                my_bet = "{{small_blind}}";
-                my_stack -= "{{small_blind}}";
-                my_stack_html.innerHTML = my_stack;
-                my_chips_bet_img.hidden = false;
-
-                opp_chips_bet_img.hidden = false;
-                opp_bet = "{{big_blind}}";
-                opp_chips_bet.innerHTML = "{{big_blind}}";
-                opp_stack -= "{{big_blind}}";
-                opp_stack_html.innerHTML = opp_stack;
-                opp_chips_bet.hidden = false;
-            } else {
-                opp_chips_bet_img.hidden = false;
-                opp_chips_bet.innerHTML = "{{small_blind}}";
-                opp_stack -= "{{small_blind}}";
-                opp_bet = "{{small_blind}}";
-                opp_stack_html.innerHTML = opp_stack;
-                opp_chips_bet.hidden = false;
-
-                my_chips_bet_img.hidden = false;
-                my_chips_bet.innerHTML = "{{big_blind}}";
-                my_stack -= "{{big_blind}}";
-                my_bet = "{{big_blind}}";
-                my_stack_html.innerHTML = my_stack;
-                my_chips_bet.hidden = false;
-            }
-
-            pot_size.innerHTML = parseInt("{{small_blind}}", 10) + parseInt("{{big_blind}}", 10);
-        }
-
-        function changeUICall(sentby, decision, call_amount) {
+         function changeUICall(sentby) {
 
             if (needFlop) { //PREFLOP
                 if (dealer == sentby) { //SB called the BB
                     if (sentby == username) {
+                        alert("hefinefienfie");
                         changeOppTurn(); //now opp turn
                     } else {
+                        alert("hefinefi32434");
                         changeMyTurn(); //now my turn
                     }
                     
@@ -565,9 +504,10 @@
                 }
                 swapTurnsAfterFlop();
 
-            } else {
+            } else { //all cards dealt
                 if (sentby == username) {
                     if (dealer == username) {
+                        alert("dealer == username");
                         checkHands();
                     }
                 }
@@ -575,7 +515,7 @@
 
         }
 
-        function changeUIBet(sentby, decision, bet_amount) {
+        function changeUIBet(sentby) {
             
             if (sentby == username) {
                 my_chips_bet_img.hidden = false;
@@ -589,7 +529,7 @@
             swapTurnAfterCheckBet(sentby);
         }
 
-        function changeUICheck(sentby, decision) {
+        function changeUICheck(sentby) {
             if (needFlop) {
                 doFlop();
                 needFlop = false;
@@ -621,6 +561,7 @@
             }
         }
 
+        //change turns after flop(non dealer acts first)
         function swapTurnsAfterFlop() {
             move = move + 1;
             hideChips();
@@ -631,10 +572,24 @@
                 changeMyTurn();
             }
 
-            my_chips_bet.innerHTML = 0;
-            opp_chips_bet.innerHTML = 0;
+            my_bet = 0;
+            opp_bet = 0
+            my_chips_bet.innerHTML = my_bet;
+            opp_chips_bet.innerHTML = opp_bet;
         }
 
+        //change turns after someone checks/bets
+        function swapTurnAfterCheckBet(sentby) {
+            //alert("hvyguhu " + sentby);
+            if (sentby == username) {
+                changeOppTurn(); //now opp turn
+            } else {
+                alert("fifinfirnfi");
+                changeMyTurn(); //now my turn
+            }
+        }
+
+        
         function doFlop() {
             move_log.value += ( "Flop is dealt\n" );
             flop1.hidden = false;
@@ -652,83 +607,92 @@
             river.hidden = false;
         }
 
-        function swapTurnAfterCheckBet(sentby) {
-            //alert("hvyguhu " + sentby);
-            if (sentby == username) {
-                changeOppTurn(); //now opp turn
-            } else {
-                changeMyTurn(); //now my turn
-            }
-        }
+        function changeOppTurn() {
+            move = move + 1;
+            opp_move_waiting.hidden = false;
+            poker_move.hidden = true;
+            my_turn = true;
 
-        function setBetAmount() {
-            var my_chips_out = my_bet;
-            var opp_chips_out = opp_bet;
             bet_button.hidden = true;
             call_button.hidden = true;
             fold_button.hidden = true;
-            bet_amount_input.hidden = true;
+            check_button.hidden = true;
+        }
 
-            //alert(my_chips_out  + " " + opp_chips_out);
-            if (my_chips_out < opp_chips_out) {
-                bet_button.hidden = false;
-                call_button.hidden = false;
-                fold_button.hidden = false;
-                bet_amount_input.hidden = false;
-            } else if (my_chips_out == opp_chips_out) {
-                bet_button.hidden = false;
-                check_button.hidden = false;
-                bet_amount_input.hidden = false;
-            }
+        function hideChips() {
+            my_chips_bet.hidden = true;
+            my_chips_bet.innerHTML = 0;
+            my_bet = 0;
+            my_chips_bet_img.hidden = true;
 
-            if (opp_chips_out == 0) {
-                bet_amount_input.min = "{{big_blind}}";
-                bet_amount_input.value = "{{big_blind}}"
-            } else if (opp_chips_out * 2 > my_chips_out) {
-                bet_amount_input.min = (opp_chips_out * 2);
-                bet_amount_input.value = (opp_chips_out * 2);
+            opp_chips_bet_img.hidden = true;
+            opp_chips_bet.innerHTML = 0;
+            opp_bet = 0;
+            opp_chips_bet.hidden = true;
+        }
+
+        function changeMyTurn() {
+            move = move + 1;
+            poker_move.hidden = false;
+            opp_move_waiting.hidden = true;
+            my_turn = false;
+
+            /*var sec = 30;
+            timer = setInterval(function(){
+                if (sec < 10) {
+                    display.innerHTML='00:0'+sec;
+                } else {
+                    display.innerHTML='00:'+sec;
+                }
+                sec--;
+                if (sec < 0) {
+                    alert("time up (fold or check)");
+                    myStopFunction();
+                }
+            }, 1000)*/
+
+            setBetAmount();
+        }
+
+        function setBlinds(isDealer) {
+            if (isDealer) {
+                //set blinds
+                my_chips_bet.hidden = false;
+                my_chips_bet.innerHTML = small_blind;
+                my_bet = small_blind;
+                my_stack -= small_blind;
+                my_stack_html.innerHTML = my_stack;
+                my_chips_bet_img.hidden = false;
+
+                opp_chips_bet_img.hidden = false;
+                opp_bet = big_blind;
+                opp_chips_bet.innerHTML = big_blind;
+                opp_stack -= big_blind;
+                opp_stack_html.innerHTML = opp_stack;
+                opp_chips_bet.hidden = false;
             } else {
-                bet_amount_input.min = parseInt(my_stack) + my_bet;
-                bet_amount_input.value = parseInt(my_stack) + my_bet;
-            }
-            bet_amount_input.max = parseInt(my_stack) + my_bet;
-        }
+                opp_chips_bet_img.hidden = false;
+                opp_chips_bet.innerHTML = small_blind;
+                opp_stack -= small_blind;
+                opp_bet = small_blind;
+                opp_stack_html.innerHTML = opp_stack;
+                opp_chips_bet.hidden = false;
 
-
-        function checkHands() {
-            var my_cards = [my_card1,my_card2];
-            var opp_cards = [opp_card1,opp_card2];
-            var flop = [flop_card1,flop_card2,flop_card3];
-
-            
-            if (username == dealer) {
-                handWinnerSocket.send(JSON.stringify({
-                    'sentby': username,
-                    'sentby_cards': my_cards,
-                    'opp_cards': opp_cards,
-                    'flop_cards': flop,
-                    'turn_card': turn_card,
-                    'river_card': river_card,
-                    'opp_username': username_opp,
-                    'table_name': "{{room_name}}",
-                    'current_dealer': dealer,
-                }));
+                my_chips_bet_img.hidden = false;
+                my_chips_bet.innerHTML = big_blind;
+                my_stack -= big_blind;
+                my_bet = big_blind;
+                my_stack_html.innerHTML = my_stack;
+                my_chips_bet.hidden = false;
             }
 
+            alert(typeof(opp_bet) + typeof(my_bet));
+
+            pot += opp_bet + my_bet;
+            pot_size.innerHTML = pot;
         }
 
-
-            /*
-            "new_dealer": new_dealer,
-            "winner": winner,
-            "sentby_hand": hand_info[1][0],
-            "sentby_hand_cards": hand_info[1][1:],
-            "other_hand": hand_info[2][0],
-            "other_hand_cards": hand_info[2][1:],
-            "sentby":sentby,
-            "skip": "yes/no"
-        */
-        handWinnerSocket.onmessage = function(e) {
+         handWinnerSocket.onmessage = function(e) {
 
             const data = JSON.parse(e.data);
             var skip = data.skip;
@@ -831,88 +795,6 @@
             }
         }
 
-
-            /*
-            "sentby": sentby,
-            "sentby_card1": cards[2],
-            "sentby_card2": cards[3],
-            "other_card1": cards[0],
-            "other_card2": cards[1],
-            "flop_card1": cards[4],
-            "flop_card2": cards[5],
-            "flop_card3": cards[6],
-            "turn_card": cards[7],
-            "river_card": cards[8],
-            "skip":"no",
-        */
-        dealNewHand.onmessage = async function(e) {
-
-            alert("new hand");
-            const data = JSON.parse(e.data);
-            var skip = data.skip;
-            var sentby = data.sentby;
-
-            if (skip == "no") {
-                var sentby_card1 = data.sentby_card1;
-                var sentby_card2 = data.sentby_card2;
-                var other_card1 = data.other_card1;
-                var other_card2 = data.other_card2;
-                var flop_card1 = data.flop_card1;
-                var flop_card2 = data.flop_card2;
-                var flop_card3 = data.flop_card3;
-                var turn_card = data.turn_card;
-                var river_card = data.river_card;
-                alert(river_card);
-
-                alert(sentby_card1 + " " + sentby_card2 + " " + other_card1 + " " + other_card2);
-
-
-                if (sentby == username) {
-                    alert("here");
-                    my_card1 = sentby_card1;
-                    my_card2 = sentby_card2;
-                    card1.src = "/static/img/" + my_card1 + ".png";
-                    card2.src = "/static/img/" + my_card2 + ".png";
-
-                    opp_card1 = other_card1;
-                    opp_card2 = other_card2;
-                    card1_opp.src = "/static/img/back_of_card.png";
-                    card2_opp.src = "/static/img/back_of_card.png";
-
-                } else {
-                    alert("here2");
-                    my_card1 = other_card1;
-                    my_card2 = other_card2;
-                    card1.src = "/static/img/" + my_card1 + ".png";
-                    card2.src= "/static/img/" + my_card2 + ".png";
-
-                    opp_card1 = sentby_card1;
-                    opp_card2 = sentby_card2;
-                    card1_opp.src = "/static/img/back_of_card.png";
-                    card2_opp.src = "/static/img/back_of_card.png";
-                }
-
-
-                if (username == dealer) {
-                    setBlinds(true);
-                    changeMyTurn(); //update UI to show it's my turn
-                    setBetAmount();
-                } else {
-                    setBlinds(false);
-                    changeOppTurn(); //update UI to show it's my turn
-                    setBetAmount();
-                }
-
-                flop1.hidden = true;
-                flop2.hidden = true;
-                flop3.hidden = true;
-                turn.hidden = true;
-                river.hidden = true;
-                move_log.value += ( "Cards dealt & blinds set.\n" );
-            }
-
-        }
-
         function setEverythingEmpty() {
             hideChips();
             pot_size.innerHTML = 0;
@@ -927,242 +809,61 @@
         }
 
 
-        //Poker winnning hand logic
-        /*function checkHands() {
-            var rankings = ["royal_flush","straight_flush","quads", "full_house", "flush","straight","three_of_a_kind",
-            "two_pair","one_pair","high_card"];
+        function checkHands() {
+            var my_cards = [my_card1,my_card2];
+            var opp_cards = [opp_card1,opp_card2];
+            var flop = [flop_card1,flop_card2,flop_card3];
 
-            var cards = ['2_of_hearts','3_of_hearts','4_of_hearts','5_of_hearts','6_of_hearts','7_of_hearts','8_of_hearts','9_of_hearts','10_of_hearts','jack_of_hearts','queen_of_hearts','king_of_hearts','ace_of_hearts',
-             '2_of_clubs','3_of_clubs','4_of_clubs','5_of_clubs','6_of_clubs','7_of_clubs','8_of_clubs','9_of_clubs','10_of_clubs','jack_of_clubs','queen_of_clubs','king_of_clubs','ace_of_clubs',
-             '2_of_spades','3_of_spades','4_of_spades','5_of_spades','6_of_spades','7_of_spades','8_of_spades','9_of_spades','10_of_spades','jack_of_spades','queen_of_spades','king_of_spades','ace_of_spades',
-             '2_of_diamonds','3_of_diamonds','4_of_diamonds','5_of_diamonds','6_of_diamonds','7_of_diamonds','8_of_diamonds','9_of_diamonds','10_of_diamonds','jack_of_diamonds','queen_of_diamonds','king_of_diamonds','ace_of_diamonds'];
-
-            var card_highs = ["2","3","4","5","6","7","8","9","10","jack","queen","king","ace"];
-
-            //my hand
-            var my_hand = getHand(cards,card_highs,my_card1,my_card2);
-
-            //opp hand
-            var opp_hand = getHand(cards,card_highs,opp_card1,opp_card2);
-
-        }
-
-        function getHand(cards,card_highs,card1,card2) {
-
-            var cards_left = [card1,card2,flop_card1,flop_card2,flop_card3,turn_card,river_card];
-
-            var royal_flush = checkRoyalFlush(cards,card_highs,card1,card2,cards_left);
-            if (royal_flush != null) {
-                return royal_flush;
-            } 
-
-            var straight_flush = checkStraightFlush(cards,card_highs,card1,card2,cards_left);
-            if (straight_flush != null) {
-                return straight_flush;
-            } 
-
-            var quads = checkQuads(cards,card_highs,card1,card2,cards_left);
-            if (quads != null) {
-                return quads;
-            }
-
-            var full_house = checkFullHouse(cards,card_highs,card1,card2,cards_left);
-            if (full_house != null) {
-                return full_house;
-            }
-
-            var flush = checkFlush(cards,card_highs,card1,card2,cards_left);
-            if (full_house != null) {
-                return full_house;
-            }
-
-            var straight = checkStraight(cards,card_highs,card1,card2,cards_left);
-            if (straight != null) {
-                return straight;
-            }
-
-            var three_of_a_kind = checkThreeOfAKind(cards,card_highs,card1,card2,cards_left);
-            if (three_of_a_kind != null) {
-                return three_of_a_kind;
-            }
-
-            var two_pair = checkTwoPair(cards,card_highs,card1,card2,cards_left);
-            if (two_pair != null) {
-                return two_pair;
-            }
-
-            var one_pair = checkOnePair(cards,card_highs,card1,card2,cards_left);
-            if (one_pair != null) {
-                return one_pair;
-            }
-
-            var high_card = checkHighCard(cards,card_highs,card1,card2,cards_left);
-            if (high_card != null) {
-                return high_card;
-            }
-
-        }
-
-        function checkRoyalFlush(cards,card_highs,card1,card2,cards_left) {
-            if (checkFlush(cards,card_highs,card1,card2) != null && checkStraight(cards,card_highs,card1,card2) != null) {
-                if 
-            }
-
-            return null;
-
-        }
-
-        function checkStraightFlush(cards,card_highs,card1,card2,cards_left) {
-            if (checkFlush(cards,card_highs,card1,card2) != null && checkStraight(cards,card_highs,card1,card2) != null) {
-                return checkStraight(cards,card_highs,card1,card2);
-            }
-
-            return null;
-        }
-
-        function checkQuads(cards,card_highs,card1,card2,cards_left) {
-
-            cards_left = cards_left.sort();
-            for (i = 0; i < 4; i++) {
-                if (cards_left[i].charAt(i) == cards_left[i].charAt(i+3)) {
-                    return cards_left[i];
-                }
-            }
-
-            return null;
-
-        }
-
-        function checkFullHouse(cards,card_highs,card1,card2,cards_left) {
-
-            var three_kind = checkThreeOfAKind(cards,card_highs,card1,card2);
-            cards_left = cards_left.sort();
-            if (three_kind != null) {
-                for (i = 0; i < 4; ++i) {
-                    if (cards_left[i] == three_kind) {
-                        var reduced_cards = cards_left.splice(i,i+3);
-                        break;
-                    }
-                }
-            } else {
-                return null;
-            }
-
-            var pair = checkOnePair(cards,card_highs,card1,card2,reduced_cards);
-
-            if (pair != null) {
-                return three_kind + " " + pair;
-            }
-
-            return null;
-
-        }
-
-        function checkFlush(cards,card_highs,card1,card2,cards_left) {
-            cards_left = cards_left.sort(compareFunction);
-
-            for (i = 0; i < 3; ++i) {
-                var n1 = cards_left[i].indexOf("_");
-                var n2 = cards_left[i+4].indexOf("_");
-                if (cards_left[i].substring(n1,cards_left[i].length) == cards_left[i+4]substring(n2,cards_left[i+4].length)) {
-                    return "yes"
-                }
-            }
-
-            return null;
-        }
-
-        //sort by suit
-        function compareFunction(a,b) {
-            var n1 = a.indexOf("_");
-            var n2 = b.indexOf("_");
-            return a.substring(n1,a.length) < b.substring(n2,b.length);
-        }
-
-        function checkStraight(cards,card_highs,card1,card2,cards_left) {
-            cards_left = cards_left.sort(compareFunction2);
-
-            for (i = 0; i < cards_left.length-4; ++i) {
-                var n1 = cards_left[i].indexOf("_");
-                var sub1 = a.substring(0,n1);
-
-                for (j = i+1; j < i+5; ++j) {
-                    var n2 = cards_left[j].indexOf("_");
-                    var sub2 = cards_left[j].substring(0,n2);
-                    if ( (card_highs.indexOf(sub2)-card_highs.indexOf(sub1)) != 1) {
-                        break;
-                    } else if (i+4 == j) {
-                        return cards_left[i] + " "  + cards_left[j];
-                    } else {
-                        sub1 = sub2;
-                    }
-                }
-            }
-
-            return null;
-
-        }
-
-        function checkThreeOfAKind(cards,card_highs,card1,card2,cards_left) {
-            cards_left = cards_left.sort();
-
-            for (i = 0; i < 5; i++) {
-                if (cards_left[i].charAt(i) == cards_left[i].charAt(i+2)) {
-                    return cards_left[i];
-                }
-            }
-        }
-
-        function checkTwoPair(cards,card_highs,card1,card2,cards_left) {
-            cards_left = cards_left.sort(compareFunction2);
-
-            var found_pair = checkOnePair(cards,card_highs,card1,card2, cards_left);
             
-            if (found_pair != null) {
-                for (i = 0; i < cards_left.length-1; ++i) {
-                    if (cards_left[i] == found_pair) {
-                        var reduced_cards = cards_left.splice(i,i+2);
-                        break;
-                    }
-                }
+            if (username == dealer) {
+                handWinnerSocket.send(JSON.stringify({
+                    'sentby': username,
+                    'sentby_cards': my_cards,
+                    'opp_cards': opp_cards,
+                    'flop_cards': flop,
+                    'turn_card': turn_card,
+                    'river_card': river_card,
+                    'opp_username': username_opp,
+                    'table_name': "{{room_name}}",
+                    'current_dealer': dealer,
+                }));
             }
 
-            var found_other_pair = checkOnePair(cards,card_highs,card1,card2, reduced_cards);
-            if (found_pair != null) {
-                return found_other_pair + " " + found_pair;
+        }
+
+         function setBetAmount() {
+            bet_button.hidden = true;
+            call_button.hidden = true;
+            fold_button.hidden = true;
+            bet_amount_input.hidden = true;
+
+            alert(my_bet + " " + opp_bet + typeof(my_bet) + typeof(opp_bet));
+            if (my_bet < opp_bet) {
+                bet_button.hidden = false;
+                call_button.hidden = false;
+                fold_button.hidden = false;
+                bet_amount_input.hidden = false;
+            } else if (my_bet == opp_bet) {
+                bet_button.hidden = false;
+                check_button.hidden = false;
+                bet_amount_input.hidden = false;
             }
 
-            return null;
-        }
-
-        function checkOnePair(cards,card_highs,card1,card2, cards_left) {
-            cards_left = cards_left.sort(compareFunction2);
-
-            for (i = 0; i < cards_left.length-1; ++i) {
-                if (cards_left[i] == cards_left[i+1]) {
-                    return cards_left[i];
-                }
+            if (opp_bet == 0) {
+                bet_amount_input.min = big_blind;
+                bet_amount_input.value = big_blind
+            } else if (opp_bet * 2 > my_bet) {
+                bet_amount_input.min = (opp_bet * 2);
+                bet_amount_input.value = (opp_bet * 2);
+            } else {
+                bet_amount_input.min = parseInt(my_stack) + my_bet;
+                bet_amount_input.value = parseInt(my_stack) + my_bet;
             }
-
-            return null;
+            bet_amount_input.max = parseInt(my_stack) + my_bet;
         }
 
-        //sort by card high
-        function compareFunction2(a,b) {
-            var n1 = a.indexOf("_");
-            var n2 = b.indexOf("_");
-
-            var sub1 = a.substring(0,n1);
-            var sub2 = a.substring(0,n2);
-            return card_highs[a.substring(0,n1)] < card_highs[b.substring(0,n2)];
-        }
-
-        function checkHighCard(cards,card_highs,card1,card2,cards_left) {
-            cards_left = cards_left.sort(compareFunction2);
-            return cards_left[cards_left.length-1];
-        }*/
 
 
-    </script>
+   </script>
 </body>
 </html>

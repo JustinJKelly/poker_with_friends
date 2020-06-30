@@ -135,13 +135,42 @@ class PlayerDecisionConsumer(WebsocketConsumer):
 
     # Receive message from WebSocket
     def receive(self, text_data):
+        
+        table = Table.objects.get(table_name=self.room_name)
         text_data_json = json.loads(text_data)
         sentby = text_data_json['sentby']
         decision = text_data_json['decision']
         
+        if table.player1 == sentby:
+            player1_stack = text_data_json['sentby_stack']
+            player2_stack = text_data_json['other_stack']
+            player1_bet = text_data_json['sentby_bet']
+            player2_bet = text_data_json['other_bet']
+        else:
+            player2_stack = text_data_json['sentby_stack']
+            player1_stack = text_data_json['other_stack']
+            player2_bet = text_data_json['sentby_bet']
+            player1_bet = text_data_json['other_bet']
+            
+        table.player1_current_stack = player1_stack
+        table.player2_current_stack = player2_stack
+        table.player1_last_bet_amount = player1_stack
+        table.player2_last_bet_amount = player2_stack
+            
+        turn = text_data_json['new_turn']
+        if table.player1 == turn:
+            table.player1_turn = True
+            table.player2_turn = False
+        else:
+            table.player2_turn = True
+            table.player1_turn = False
+            
+        pot = text_data_json['pot']
+        table.pot_size = pot
+        print("pot", pot)
+        
         if decision == "bet":
             betamount = text_data_json['betamount']
-            #print('betamount:',betamount)
 
             # Send message to room group
             async_to_sync(self.channel_layer.group_send)(
@@ -151,6 +180,14 @@ class PlayerDecisionConsumer(WebsocketConsumer):
                     'sentby': sentby,
                     'betamount':betamount,
                     'decision':decision,
+                    'sentby_stack': text_data_json['sentby_stack'],
+                    'other_stack': text_data_json['other_stack'],
+                    'sentby_bet': text_data_json['sentby_bet'],
+                    'other_bet': text_data_json['other_bet'],
+                    'new_turn':turn,
+                    'player1': table.player1,
+                    'player2': table.player2,
+                    'pot':pot,
                 }
             )
         
@@ -166,6 +203,14 @@ class PlayerDecisionConsumer(WebsocketConsumer):
                     'sentby': sentby,
                     'callamount':callamount,
                     'decision':decision,
+                    'sentby_stack': text_data_json['sentby_stack'],
+                    'other_stack': text_data_json['other_stack'],
+                    'sentby_bet': text_data_json['sentby_bet'],
+                    'other_bet': text_data_json['other_bet'],
+                    'new_turn':turn,
+                    'player1': table.player1,
+                    'player2': table.player2,
+                    'pot':pot,
                 }
             )
         
@@ -177,6 +222,14 @@ class PlayerDecisionConsumer(WebsocketConsumer):
                     'type': 'poker_message_check',
                     'sentby': sentby,
                     'decision':decision,
+                    'sentby_stack': text_data_json['sentby_stack'],
+                    'other_stack': text_data_json['other_stack'],
+                    'sentby_bet': text_data_json['sentby_bet'],
+                    'other_bet': text_data_json['other_bet'],
+                    'new_turn':turn,
+                    'player1': table.player1,
+                    'player2': table.player2,
+                    'pot':pot,
                 }
             )
 
@@ -185,12 +238,29 @@ class PlayerDecisionConsumer(WebsocketConsumer):
         sentby = event['sentby']
         decision= event['decision']
         betamount = event['betamount']
+        player1 = event['player1']
+        player2 = event['player2']
+        sentby_stack = event['sentby_stack']
+        other_stack = event['other_stack']
+        sentby_bet = event['sentby_bet']
+        other_bet = event['other_bet']
+        turn = event['new_turn']
+        pot = event['pot']
+        
+        #print(player1_bet)
+        #print(type(player1_bet), type(player1_stack))
 
         # Send message to WebSocket
         self.send(text_data=json.dumps({
             'sentby': sentby,
             'betamount':betamount,
             'decision':decision,
+            'sentby_stack': sentby_stack,
+            'other_stack': other_stack,
+            'sentby_bet': sentby_bet,
+            'other_bet': other_bet,
+            'turn':turn,
+            'pot':pot,
         }))
         
     # Receive message from room group
@@ -198,23 +268,53 @@ class PlayerDecisionConsumer(WebsocketConsumer):
         sentby = event['sentby']
         decision= event['decision']
         callamount = event['callamount']
+        player1 = event['player1']
+        player2 = event['player2']
+        sentby_stack = event['sentby_stack']
+        other_stack = event['other_stack']
+        sentby_bet = event['sentby_bet']
+        other_bet = event['other_bet']
+        turn = event['new_turn']
+        pot = event['pot']
+        
+        
 
         # Send message to WebSocket
         self.send(text_data=json.dumps({
             'sentby': sentby,
             'callamount':callamount,
             'decision':decision,
+            'sentby_stack': sentby_stack,
+            'other_stack': other_stack,
+            'sentby_bet': sentby_bet,
+            'other_bet': other_bet,
+            'turn':turn,
+            'pot':pot,
         }))
     
     # Receive message from room group
     def poker_message_check(self, event):
         sentby = event['sentby']
         decision= event['decision']
+        player1 = event['player1']
+        player2 = event['player2']
+        sentby_stack = event['sentby_stack']
+        other_stack = event['other_stack']
+        sentby_bet = event['sentby_bet']
+        other_bet = event['other_bet']
+        turn = event['new_turn']
+        pot = event['pot']
 
         # Send message to WebSocket
         self.send(text_data=json.dumps({
             'sentby': sentby,
             'decision':decision,
+            'sentby_stack': sentby_stack,
+            'other_stack': other_stack,
+            'sentby_bet': sentby_bet,
+            'other_bet': other_bet,
+            'turn':turn,
+            'pot':pot,
         }))
         
 class PlayerFoldedConsumer(WebsocketConsumer):
@@ -461,11 +561,10 @@ class DealNewHandConsumer(WebsocketConsumer):
             table.river_card = cards[8]
             
         table.save()
-        
-        sleep(15)
-        print("Done sleeping")
             
         if sentby == table.player1:
+            sleep(15)
+            print("Done sleeping")
             self.send(text_data=json.dumps({
                 "sentby": sentby,
                 "sentby_card1": cards[0],

@@ -114,6 +114,7 @@ def room(request, room_name):
         table.flop_card3 = cards[6]
         table.turn_card = cards[7]
         table.river_card = cards[8]
+        table.pot_size = 0
         table.save()
     
     if 'username' in request.session:
@@ -178,4 +179,4 @@ def room(request, room_name):
     context['dealer'] = table.dealer
     
     
-    return render(request, 'poker/room.html', context)
+    return render(request, 'poker/temp.html', context)
