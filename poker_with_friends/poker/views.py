@@ -4,6 +4,7 @@ from .forms import MakeTableForm, JoinTableForm
 from django.contrib import messages
 from .models import Table
 from .deal_cards import deal_cards
+from django.urls import reverse
 
 # Create your views here.
 def make_table(request):
@@ -89,10 +90,13 @@ table_id = models.CharField(max_length=16, null=False)
 '''
 #start game
 def room(request, room_name):
-    
-    context = {}
-    table = Table.objects.get(table_id=request.session.get('table_id'))
+    #table = Table.objects.get(table_id=request.session.get('table_id'))
+    return redirect("/poker/table/"+request.session.get('table_id')+"/"+room_name)
+
+def room_protected(request,room_name,table_id,):
+    table = Table.objects.get(table_id=table_id)
     print("look here",table.table_name)
+    context = {}
     
     if table.player2 == "none":
         cards = deal_cards(2)
@@ -183,4 +187,4 @@ def room(request, room_name):
     context['dealer'] = table.dealer
     
     
-    return render(request, 'poker/temp.html', context)
+    return render(request, 'poker/poker_room.html', context)

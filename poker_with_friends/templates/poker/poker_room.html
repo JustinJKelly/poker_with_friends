@@ -753,11 +753,12 @@
 
                     move_log.value += "Hand " + hand + ": " + winner + " wins the hand with a " + winning_hand + "(" + pot + ")\n";
 
-                    my_stack_html.innerHTML = my_stack + pot;
                     my_stack += pot;
+                    my_stack_html.innerHTML = my_stack;
+                    
                     //alert(my_stack_html.innerHTML);
 
-                    if (parseInt(opp_stack_html.innerHTML) == 0 ) {
+                    if ( opp_stack == 0 ) {
                         Swal.fire({
                             title: "You Won!",
                             text: username + " wins the game",
@@ -796,19 +797,19 @@
 
                     move_log.value += "<b>Hand " + hand + "</b>: " + winner + " wins the hand with a " + winning_hand + "(" + pot + ")\n";
 
-                    opp_stack_html.innerHTML = my_stack + pot;
                     opp_stack += pot;
+                    opp_stack_html.innerHTML = opp_stack;
                     //alert(opp_stack_html.innerHTML);
 
-                    if (parseInt(my_stack_html.innerHTML) == 0 ) {
+                    if (my_stack == 0 ) {
                         Swal.fire({
                             title: "You Lost!",
                             text: username_opp + " wins the game",
                             confirmButtonText: "Go Back",
                             timer: 10000
                         });
+                        return;
                     }
-                    return;
                 }
 
                 setEverythingEmpty();
