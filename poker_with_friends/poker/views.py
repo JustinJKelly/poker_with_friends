@@ -115,6 +115,10 @@ def room(request, room_name):
         table.turn_card = cards[7]
         table.river_card = cards[8]
         table.pot_size = 0
+        table.player2_last_bet_amount = 0
+        table.player1_last_bet_amount = 0
+        table.player2_current_stack = table.starting_stack
+        table.player1_current_stack = table.starting_stack
         table.save()
     
     if 'username' in request.session:

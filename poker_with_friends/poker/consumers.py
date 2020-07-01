@@ -154,8 +154,8 @@ class PlayerDecisionConsumer(WebsocketConsumer):
             
         table.player1_current_stack = player1_stack
         table.player2_current_stack = player2_stack
-        table.player1_last_bet_amount = player1_stack
-        table.player2_last_bet_amount = player2_stack
+        table.player1_last_bet_amount = player1_bet
+        table.player2_last_bet_amount = player2_bet
             
         turn = text_data_json['new_turn']
         if table.player1 == turn:
@@ -168,6 +168,7 @@ class PlayerDecisionConsumer(WebsocketConsumer):
         pot = text_data_json['pot']
         table.pot_size = pot
         print("pot", pot)
+        table.save()
         
         if decision == "bet":
             betamount = text_data_json['betamount']
@@ -214,12 +215,29 @@ class PlayerDecisionConsumer(WebsocketConsumer):
                 }
             )
         
-        else:
+        elif decision == "check":
             # Send message to room group
             async_to_sync(self.channel_layer.group_send)(
                 self.room_group_name,
                 {
                     'type': 'poker_message_check',
+                    'sentby': sentby,
+                    'decision':decision,
+                    'sentby_stack': text_data_json['sentby_stack'],
+                    'other_stack': text_data_json['other_stack'],
+                    'sentby_bet': text_data_json['sentby_bet'],
+                    'other_bet': text_data_json['other_bet'],
+                    'new_turn':turn,
+                    'player1': table.player1,
+                    'player2': table.player2,
+                    'pot':pot,
+                }
+            )
+        else:
+            async_to_sync(self.channel_layer.group_send)(
+                self.room_group_name,
+                {
+                    'type': 'poker_message_fold',
                     'sentby': sentby,
                     'decision':decision,
                     'sentby_stack': text_data_json['sentby_stack'],
@@ -294,6 +312,31 @@ class PlayerDecisionConsumer(WebsocketConsumer):
     
     # Receive message from room group
     def poker_message_check(self, event):
+        sentby = event['sentby']
+        decision= event['decision']
+        player1 = event['player1']
+        player2 = event['player2']
+        sentby_stack = event['sentby_stack']
+        other_stack = event['other_stack']
+        sentby_bet = event['sentby_bet']
+        other_bet = event['other_bet']
+        turn = event['new_turn']
+        pot = event['pot']
+
+        # Send message to WebSocket
+        self.send(text_data=json.dumps({
+            'sentby': sentby,
+            'decision':decision,
+            'sentby_stack': sentby_stack,
+            'other_stack': other_stack,
+            'sentby_bet': sentby_bet,
+            'other_bet': other_bet,
+            'turn':turn,
+            'pot':pot,
+        }))
+    
+     # Receive message from room group
+    def poker_message_fold(self, event):
         sentby = event['sentby']
         decision= event['decision']
         player1 = event['player1']
@@ -463,6 +506,9 @@ class CheckHandWinnerConsumer(WebsocketConsumer):
         flop_cards = event['flop_cards']
         turn_card = event['turn_card']
         river_card = event['river_card']
+        flop_cards = [table.flop_card1,table.flop_card2,table.flop_card3]
+        turn_card = table.turn_card
+        river_card = table.river_card
         
         hand_info = checkHands(sentby,sentby_cards,other_username,other_cards,flop_cards,turn_card,river_card)
         print('hand info:',hand_info)
@@ -473,13 +519,8 @@ class CheckHandWinnerConsumer(WebsocketConsumer):
         winning_hand = hand_info[1]
         print(winning_hand)
     
-        if current_dealer == sentby:
-            new_dealer = other_username
-        else:
-            new_dealer = sentby
             
         self.send(text_data=json.dumps({
-            "new_dealer": new_dealer,
             "winner": winner,
             "winning_hand": winning_hand,
             "sentby_hand": hand_info[2][0],
@@ -520,26 +561,24 @@ class DealNewHandConsumer(WebsocketConsumer):
         text_data_json = json.loads(text_data)
         sentby = text_data_json['sentby']
         room_name = text_data_json['table_name']
-
-        # Send message to room group
-        async_to_sync(self.channel_layer.group_send)(
-            self.room_group_name,
-            {
-                'type': 'new_hand',
-                'sentby': sentby,
-                'room_name': room_name,
-            }
-        )
-
-    def new_hand(self, event):
+        current_dealer = text_data_json['dealer']
+        print(sentby, ' ', current_dealer)
         
-        table_name = event['room_name']
-        table = Table.objects.get(table_name=table_name)
-        sentby = event['sentby']
+        table = Table.objects.get(table_name=room_name)
+        new_dealer = None
+        
+        if table.player1 == current_dealer:
+            table.dealer = table.player2
+            new_dealer = table.player2
+        else:
+            table.dealer = table.player1
+            new_dealer = table.player1
+        
         cards = deal_cards(2)
         print(cards, " ")
+        #print("Look here:",sentby, ' ', table.dealer)
         
-        if (sentby == table.player1):
+        if sentby == table.player1:
             table.player1_card1 = cards[0]
             table.player1_card2 = cards[1]
             table.player2_card1 = cards[2]
@@ -559,40 +598,57 @@ class DealNewHandConsumer(WebsocketConsumer):
             table.flop_card3 = cards[6]
             table.turn_card = cards[7]
             table.river_card = cards[8]
-            
+        
         table.save()
-            
+
+        # Send message to room group
+        async_to_sync(self.channel_layer.group_send)(
+            self.room_group_name,
+            {
+                'type': 'new_hand',
+                'sentby': sentby,
+                'room_name': room_name,
+                'new_dealer': new_dealer,
+            }
+        )
+
+    def new_hand(self, event):
+        
+        table_name = event['room_name']
+        table = Table.objects.get(table_name=table_name)
+        sentby = event['sentby']
+        sleep(15)
+        print("Done sleeping")
+        #if dealer == sentby:
+        
         if sentby == table.player1:
-            sleep(15)
-            print("Done sleeping")
             self.send(text_data=json.dumps({
                 "sentby": sentby,
-                "sentby_card1": cards[0],
-                "sentby_card2": cards[1],
-                "other_card1": cards[2],
-                "other_card2": cards[3],
-                "flop_card1": cards[4],
-                "flop_card2": cards[5],
-                "flop_card3": cards[6],
-                "turn_card": cards[7],
-                "river_card": cards[8],
+                "sentby_card1": table.player1_card1,
+                "sentby_card2": table.player1_card2,
+                "other_card1": table.player2_card1,
+                "other_card2": table.player2_card2,
+                "flop_card1": table.flop_card1,
+                "flop_card2": table.flop_card2,
+                "flop_card3": table.flop_card3,
+                "turn_card": table.turn_card,
+                "river_card": table.river_card,
                 "skip":"no",
+                "dealer":table.dealer,
             }))
         else:
             self.send(text_data=json.dumps({
-                "skip":"yes",
-            }))
-            '''self.send(text_data=json.dumps({
                 "sentby": sentby,
-                "sentby_card1": cards[2],
-                "sentby_card2": cards[3],
-                "other_card1": cards[0],
-                "other_card2": cards[1],
-                "flop_card1": cards[4],
-                "flop_card2": cards[5],
-                "flop_card3": cards[6],
-                "turn_card": cards[7],
-                "river_card": cards[8],
+                "sentby_card1": table.player2_card1,
+                "sentby_card2": table.player2_card2,
+                "other_card1": table.player1_card1,
+                "other_card2": table.player1_card2,
+                "flop_card1": table.flop_card1,
+                "flop_card2": table.flop_card2,
+                "flop_card3": table.flop_card3,
+                "turn_card": table.turn_card,
+                "river_card": table.river_card,
                 "skip":"no",
-            }))'''
-            
+                "dealer":table.dealer,
+            }))
+        

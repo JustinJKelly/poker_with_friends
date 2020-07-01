@@ -822,7 +822,8 @@
                 setEverythingEmpty();
                 hand += 1;
 
-                if (sentby == username) {
+                if (sentby == dealer) {
+
                     dealNewHand.send(JSON.stringify({
                         "sentby": username,
                         'table_name': "{{room_name}}",

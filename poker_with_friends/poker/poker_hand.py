@@ -16,7 +16,7 @@ card_highs = ["2","3","4","5","6","7","8","9","10","jack","queen","king","ace"]
 def checkHands(player1,player1_cards,player2,player2_cards,flop_cards,turn_card,river_card):
     #my hand
     player1_cards = player1_cards + flop_cards + [turn_card,river_card] #['queen_of_hearts','queen_of_spades','6_of_hearts','4_of_hearts','2_of_hearts','ace_of_clubs','7_of_diamonds']
-    print(player1_cards)
+    #print(player1_cards)
     player1_hand = getHand(player1_cards)
     
     if "two_pair" in player1_hand or "quads" in player1_hand:
@@ -26,11 +26,11 @@ def checkHands(player1,player1_cards,player2,player2_cards,flop_cards,turn_card,
     elif "three_of_a_kind" in player1_hand:
         player1_hand = get_other_high_cards(2, player1_hand, player1_cards)
         
-    print("hand1:",player1_hand)
+    print(player1, ":",player1_hand)
     
     player2_cards = player2_cards + flop_cards + [turn_card,river_card] #['queen_of_hearts','queen_of_spades','6_of_hearts','4_of_hearts','2_of_hearts','ace_of_clubs','7_of_diamonds']
     player2_hand = getHand(player2_cards)
-    print(player2_cards)
+    #print(player2_cards)
     
     if "two_pair" in player2_hand or "quads" in player2_hand:
         player2_hand = get_other_high_cards(1, player2_hand, player2_cards)
@@ -39,7 +39,7 @@ def checkHands(player1,player1_cards,player2,player2_cards,flop_cards,turn_card,
     elif "three_of_a_kind" in player2_hand:
         player2_hand = get_other_high_cards(2, player2_hand, player2_cards)
         
-    print("hand2:",player2_hand)
+    print(player2,":",player2_hand)
 
     player1_hand_strength = rankings.index(player1_hand[0])
     player2_hand_strength = rankings.index(player2_hand[0])
@@ -271,52 +271,52 @@ def getHand(cards_left):
     if royal_flush != None:
         return royal_flush
 
-    print("not royal")
+    #print("not royal")
     straight_flush = checkStraightFlush(cards_left)
     if straight_flush != None:
         return straight_flush
 
-    print("not straight flush")
+    #print("not straight flush")
     quads = checkQuads(cards_left)
     if quads != None:
         return quads
 
-    print("not quads")
+    #print("not quads")
     full_house = checkFullHouse(cards_left)
     if full_house != None:
         return full_house
 
-    print("not full house")
+    #print("not full house")
     flush = checkFlush(cards_left)
     if flush != None:
         return flush
 
-    print("not flush")
+    #print("not flush")
     straight = checkStraight(cards_left)
     if straight != None:
         return straight
 
-    print("not straight")
+    #print("not straight")
     three_of_a_kind = checkThreeOfAKind(cards_left)
     if three_of_a_kind != None:
         return three_of_a_kind
 
-    print("not ToK")
+    #print("not ToK")
     two_pair = checkTwoPair(cards_left)
     if two_pair != None:
         return two_pair
 
-    print("not two pair")
+    #print("not two pair")
     one_pair = checkOnePair(cards_left)
     if one_pair != None:
         return one_pair
 
-    print("not pair")
+    #print("not pair")
     high_card = checkHighCard(cards_left)
     if high_card != None:
         return high_card
 
-    print("high card")    
+    #print("high card")    
 
 def checkRoyalFlush(cards_left):
     
@@ -341,7 +341,7 @@ def checkStraightFlush(cards_left):
     #print(cards_left)
     cards_left.sort(key=comparefunction2,reverse=True)
     cards_left.sort(key=comparefunction)
-    print("straightflush sort",cards_left)
+    #print("straightflush sort",cards_left)
 
     for i in range(0,len(cards_left)-4):
         n1 = cards_left[i].find("_")
@@ -368,10 +368,10 @@ def checkStraightFlush(cards_left):
 def checkQuads(cards_left):
 
     cards_left.sort(key=comparefunction2)
-    print(cards_left)
+    #print(cards_left)
     for i in range(0,4):
         if cards_left[i][0] == cards_left[i+3][0]:
-            print(cards_left[i][0], " ", cards_left[i+3][0])
+            #print(cards_left[i][0], " ", cards_left[i+3][0])
             
             hand = ["quads"]
             hand += cards_left[i:i+4]
@@ -399,7 +399,7 @@ def checkFullHouse(cards_left):
         hand = ["full_house"]
         hand += three_kind 
         hand += pair
-        print("HFRIHF")
+        #print("HFRIHF")
         return hand
 
     return None
@@ -408,7 +408,7 @@ def checkFullHouse(cards_left):
 def checkFlush(cards_left):
     cards_left.sort(key=comparefunction2,reverse=True)
     cards_left.sort(key=comparefunction)
-    print(cards_left)
+    #print(cards_left)
 
     for i in range(0,3):
         n1 = cards_left[i].find("_")
