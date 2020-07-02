@@ -150,7 +150,7 @@
         const roomName = JSON.parse(document.getElementById('room-name').textContent);
 
         const chatSocket = new WebSocket(
-            'ws://'
+            'http://'
             + window.location.host
             + '/ws/chat/'
             + roomName 
@@ -158,7 +158,7 @@
         );
 
         const newPlayerSocket = new WebSocket(
-            'ws://'
+            'http://'
             + window.location.host
             + '/ws/poker/'
             + roomName
@@ -166,7 +166,7 @@
         );
 
         const playerDecisionSocket = new WebSocket(
-            'ws://'
+            'http://'
             + window.location.host
             + '/ws/poker/'
             + roomName
@@ -174,7 +174,7 @@
         );
 
         const handWinnerSocket = new WebSocket(
-            'ws://'
+            'http://'
             + window.location.host
             + '/ws/poker/'
             + roomName
@@ -182,7 +182,7 @@
         );
 
         const dealNewHand = new WebSocket(
-            'ws://'
+            'http://'
             + window.location.host
             + '/ws/poker/'
             + roomName
