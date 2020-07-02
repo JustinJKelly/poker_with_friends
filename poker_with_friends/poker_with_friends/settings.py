@@ -27,7 +27,7 @@ SECRET_KEY = '4esd&-jg!x=j0t3$3&fccu5$#m8=j1bs6&%l06i^6*it4^o_6v'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'letsplaypoker.herokuapp.com']
 
 
 # Application definition
