@@ -84,6 +84,7 @@ CHANNEL_LAYERS = {
                        ('127.0.0.1', 6379),
                      ],
         },
+        "ROUTING": "poker_with_friends.routing.application ",
     },
 }
 

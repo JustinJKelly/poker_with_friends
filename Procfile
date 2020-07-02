@@ -1,3 +1,2 @@
-web: gunicorn poker_with_friends.wsgi --log-file -
-web2: daphne poker_with_friends.routing:application --port 8001 --bind 0.0.0.0 -v2
+web2: daphne poker_with_friends.asgi:channel_layer --port 8001
 worker: python manage.py runworker channel_layer -v2
