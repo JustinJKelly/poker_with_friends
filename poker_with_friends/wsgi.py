@@ -8,11 +8,13 @@ https://docs.djangoproject.com/en/3.0/howto/deployment/wsgi/
 """
 
 import os
+import django
 #from whitenoise.django import DjangoWhiteNoise
-from django.core.wsgi import get_wsgi_application
+from channels.routing import get_default_application
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'poker_with_friends.settings')
 
-application = get_wsgi_application()
+django.setup()
+application = get_default_application()
 #application = DjangoWhiteNoise(application)
 
