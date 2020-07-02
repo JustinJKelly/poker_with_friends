@@ -81,10 +81,8 @@ CHANNEL_LAYERS = {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
             "hosts": [ (os.environ.get('REDIS_URL')),
-                       ('127.0.0.1', 6379),
                      ],
         },
-        "ROUTING": "poker_with_friends.routing.application ",
     },
 }
 
