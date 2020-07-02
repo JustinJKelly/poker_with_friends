@@ -73,9 +73,10 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'poker_with_friends.wsgi.application'
 ASGI_APPLICATION = "poker_with_friends.routing.application"
 ASGI_THREADS = 5
+WSGI_APPLICATION = 'poker_with_friends.wsgi.application'
+
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
