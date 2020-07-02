@@ -5,8 +5,9 @@ import poker.routing
 
 application = ProtocolTypeRouter({
     # (http->django views is added by default)
-    'websocket': 
+    'websocket': AuthMiddlewareStack(
         URLRouter(
             poker.routing.websocket_urlpatterns
         )
+    ),
 })
