@@ -188,3 +188,6 @@ def room_protected(request,room_name,table_id,):
     
     
     return render(request, 'poker/poker_room.html', context)
+
+def path_does_not_exist(request):
+    return render(request,"error_request.html")
