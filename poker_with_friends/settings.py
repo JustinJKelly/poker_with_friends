@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 
 import os
 import django
-django.setup()
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -31,7 +30,7 @@ DEBUG = False
 
 ALLOWED_HOSTS = ['letsplaypoker.herokuapp.com','127.0.0.1']
 
-
+django.setup()
 # Application definition
 
 INSTALLED_APPS = [
