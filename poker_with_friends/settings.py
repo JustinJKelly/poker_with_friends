@@ -25,7 +25,7 @@ SECRET_KEY = os.environ['SECRET_KEY']
 #SECRET_KEY = '4esd&-jg!x=j0t3$3&fccu5$#m8=j1bs6&%l06i^6*it4^o_6v'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['letsplaypoker.herokuapp.com','127.0.0.1']
 
