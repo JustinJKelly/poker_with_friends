@@ -43,4 +43,3 @@ txaio==20.4.1
 urllib3==1.25.9
 whitenoise==5.1.0
 zope.interface==5.1.0
-asgi_redis==1.4.3
