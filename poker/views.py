@@ -142,10 +142,10 @@ def room_protected(request,room_name,table_id,):
     context['decision_time'] = table.decision_time
     
     if table.player1 == username:
-        context['card1'] = cards[0]
-        context['card2'] = cards[1]
-        context['opp_card1'] = cards[2]
-        context['opp_card2'] = cards[3]
+        context['card1'] = table.player1_card1
+        context['card2'] = table.player1_card2
+        context['opp_card1'] = table.player2_card1
+        context['opp_card2'] = table.player2_card2
         context['my_username'] = table.player1
         context['opp_username'] = table.player2
         context['my_last_bet_amount'] = table.player1_last_bet_amount
