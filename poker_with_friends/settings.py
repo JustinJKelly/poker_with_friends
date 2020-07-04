@@ -76,6 +76,7 @@ ASGI_APPLICATION = "poker_with_friends.routing.application"
 #ASGI_THREADS = 5
 WSGI_APPLICATION = 'poker_with_friends.wsgi.application'
 
+print(bool(os.environ.get("DEBUG")))
 if bool((os.environ.get("DEBUG"))) == False:
     CHANNEL_LAYERS = {
         'default': {
