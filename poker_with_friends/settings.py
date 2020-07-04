@@ -25,9 +25,9 @@ SECRET_KEY = os.environ['SECRET_KEY']
 #SECRET_KEY = '4esd&-jg!x=j0t3$3&fccu5$#m8=j1bs6&%l06i^6*it4^o_6v'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = os.environ['DEBUG']
 
-ALLOWED_HOSTS = ['.herokuapp.com']
+ALLOWED_HOSTS = ['.herokuapp.com','127.0.0.1','localhost']
 
 # Application definition
 
@@ -76,14 +76,28 @@ ASGI_APPLICATION = "poker_with_friends.routing.application"
 #ASGI_THREADS = 5
 WSGI_APPLICATION = 'poker_with_friends.wsgi.application'
 
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            "hosts": [ (os.environ.get('REDIS_URL'))],
+if bool(os.environ.get("DEBUG")) == False:
+    print("efier")
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels_redis.core.RedisChannelLayer',
+            'CONFIG': {
+                "hosts": [ (os.environ.get('REDIS_URL'))],
+            },
         },
-    },
-}
+    }
+else:
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels_redis.core.RedisChannelLayer',
+            'CONFIG': {
+                "hosts": [('127.0.0.1', 6379)],
+            },
+        },
+    }
+    
+print(CHANNEL_LAYERS)
+print("hey")
 
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases

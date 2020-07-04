@@ -341,6 +341,7 @@
 
         //START POKER DATA PATH
         check_button.onclick = function(e) {
+            setButtonsHidden();
             //myStopFunction(); //stop timer
             playerDecisionSocket.send(JSON.stringify({
                 'sentby': username,
@@ -357,6 +358,8 @@
 
         call_button.onclick = function(e) {
             //myStopFunction();
+            setButtonsHidden();
+
             var call_amount = opp_bet - my_bet; //get the amount left to call
 
             //alert("will send " + (pot+call_amount));
@@ -377,6 +380,7 @@
 
         fold_button.onclick = function(e) {
             //myStopFunction();
+            setButtonsHidden();
 
             playerDecisionSocket.send(JSON.stringify({
                 'sentby': username,
@@ -394,6 +398,7 @@
         bet_button.onclick = function(e) {
             //myStopFunction();
             var bet_amount = parseInt(bet_amount_input.value);
+            setButtonsHidden();
 
             //send a message with the bet to the socket
             playerDecisionSocket.send(JSON.stringify({
@@ -408,6 +413,13 @@
                 'pot': (pot+bet_amount) - my_bet,
             }));
             
+        }
+
+        function setButtonsHidden() {
+            call_button.hidden = true;
+            fold_button.hidden = true;
+            check_button.hidden = true;
+            bet_button.hidden = true;
         }
 
         //receive a message from the socket
