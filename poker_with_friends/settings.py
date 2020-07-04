@@ -76,8 +76,7 @@ ASGI_APPLICATION = "poker_with_friends.routing.application"
 #ASGI_THREADS = 5
 WSGI_APPLICATION = 'poker_with_friends.wsgi.application'
 
-if bool(os.environ.get("DEBUG")) == False:
-    print("efier")
+if bool((os.environ.get("DEBUG"))) == False:
     CHANNEL_LAYERS = {
         'default': {
             'BACKEND': 'channels_redis.core.RedisChannelLayer',
