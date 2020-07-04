@@ -95,9 +95,6 @@ else:
             },
         },
     }
-    
-print(CHANNEL_LAYERS)
-print("hey")
 
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
