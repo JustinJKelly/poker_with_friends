@@ -975,13 +975,15 @@
             if (opp_bet == 0) {
                 bet_amount_input.min = big_blind;
                 bet_amount_input.value = big_blind
-            } else if (opp_bet * 2 > my_bet) {
-                bet_amount_input.min = (opp_bet * 2);
-                bet_amount_input.value = (opp_bet * 2);
-            } else {
-                bet_amount_input.min = parseInt(my_stack) + my_bet;
-                bet_amount_input.value = parseInt(my_stack) + my_bet;
-            }
+            } else if (opp_bet >= my_bet) { //can be else I think
+                if (my_stack < opp_bet * 2) {
+                    bet_amount_input.min = parseInt(my_stack) + my_bet;
+                    bet_amount_input.value = parseInt(my_stack) + my_bet;
+                } else {
+                    bet_amount_input.min = (opp_bet * 2);
+                    bet_amount_input.value = (opp_bet * 2);
+                }
+            } 
             bet_amount_input.max = parseInt(my_stack) + my_bet;
         }
 

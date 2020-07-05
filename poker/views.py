@@ -97,9 +97,12 @@ def room_protected(request,room_name,table_id,):
     table = Table.objects.get(table_id=table_id)
     print("look here",table.table_name)
     context = {}
+    if 'username' in request.session:
+        username = request.session.get('username')
     
     if table.player2 == "none":
         cards = deal_cards(2)
+        table.dealer = username
         
         '''context['flop_card1'] = cards[4]
         context['flop_card2'] = cards[5]
@@ -125,8 +128,6 @@ def room_protected(request,room_name,table_id,):
         table.player1_current_stack = table.starting_stack
         table.save()
     
-    if 'username' in request.session:
-        username = request.session.get('username')
     
     context['room_name'] = room_name
     context['username'] = username
