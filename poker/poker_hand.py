@@ -9,6 +9,7 @@ cards = ['2_of_hearts','3_of_hearts','4_of_hearts','5_of_hearts','6_of_hearts','
 '2_of_diamonds','3_of_diamonds','4_of_diamonds','5_of_diamonds','6_of_diamonds','7_of_diamonds','8_of_diamonds','9_of_diamonds','10_of_diamonds','jack_of_diamonds','queen_of_diamonds','king_of_diamonds','ace_of_diamonds']
 
 card_highs = ["2","3","4","5","6","7","8","9","10","jack","queen","king","ace"]
+card_highs_wheel = ["ace","2","3","4","5","6","7","8","9","10","jack","queen","king"]
 
 
 #checkHands(player1,player1_cards,player2,player2_cards,flop_cards,turn_card_river_card)
@@ -457,6 +458,24 @@ def checkStraight(cards_left):
             else:
                 sub1 = sub2
 
+    #check for wheel
+    cards_copy.sort(key=comparefunction2wheel,reverse=True)
+    for i in range(0,len(cards_copy)-4):
+        n1 = cards_copy[i].find("_")
+        sub1 = cards_copy[i][0:n1]
+        for j in range(i+1,i+5):
+            n2 = cards_copy[j].find("_")
+            sub2 = cards_copy[j][0:n2]
+            #print("straight:",card_highs.index(sub2), ' ',card_highs.index(sub1))
+            
+            if (card_highs_wheel.index(sub1) - card_highs_wheel.index(sub2)) != 1:
+                break
+            elif i+4 == j:
+                hand = ["straight"]
+                return hand + cards_copy[i:j+1]
+            else:
+                sub1 = sub2
+    
     return None
 
 
@@ -533,6 +552,17 @@ def comparefunction2(a):
     
     return card_highs.index(sub1)
 
+#sort by card high for wheel
+def comparefunction2wheel(a):
+    n1 = a.find("_")
+    #print("n1:",n1)
+    sub1 = a[0:n1]
+    #print("sub1:",sub1)
+    
+    #print("card:",sub1[0:n1])
+    
+    return card_highs_wheel.index(sub1)
+
 
 def checkHighCard(cards_left):
     cards_left.sort(key=comparefunction2, reverse=True)
@@ -541,4 +571,4 @@ def checkHighCard(cards_left):
 
 if __name__ == "__main__":
     #print(getHand(['3_of_clubs', '7_of_spades','queen_of_diamonds','10_of_spades', 'jack_of_spades', '4_of_hearts', '9_of_spades']))
-    print(checkHands("player1",['8_of_clubs', 'ace_of_spades'],"player2",['ace_of_clubs','8_of_spades'],['ace_of_hearts', '8_of_diamonds', '8_of_hearts'],"ace_of_diamonds","9_of_spades"))
+    print(checkHands("player1",['2_of_clubs', 'ace_of_spades'],"player2",['ace_of_clubs','5_of_spades'],['king_of_hearts', '2_of_diamonds', '4_of_hearts'],"3_of_diamonds","7_of_spades"))

@@ -72,6 +72,19 @@
 -->
 
 <body id="body" style="font-size:14px;">
+    <audio id="gameStartAudio">
+        <source src="{% static "to-the-point.mp3" %}" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+    <audio id="changeTurnAudio">
+        <source src="{% static "your-turn.mp3" %}" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+    <audio id="showCardsAudio">
+        <source src="{% static "knob.mp3" %}" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
     <div>
         <center> 
             <h2 style="color:white;"> Waiting for other player </h2>
@@ -147,6 +160,7 @@
 
      {{ room_name|json_script:"room-name" }}
     <script>
+
         const roomName = JSON.parse(document.getElementById('room-name').textContent);
 
         const chatSocket = new WebSocket(
@@ -194,6 +208,9 @@
         var my_last_move = null;
 
         //html elements
+        const gameStartAudio = document.querySelector("#gameStartAudio");
+        const changeTurnAudio = document.querySelector("#changeTurnAudio");
+        const showCardsAudio = document.querySelector("#showCardsAudio");
         const display = document.querySelector('#time_remaining');
         const body = document.querySelector('#body');
         const game_on = document.querySelector("#game_on");
@@ -288,6 +305,7 @@
                     changeOppTurn(); //update UI to show it's opp turn
                     setBetAmount();
                 }
+                gameStartAudio.play();
             }
             move_log.value += ( "Cards dealt & blinds set.\n" );
 
@@ -463,6 +481,8 @@
                         'dealer':dealer,
                     }));
                 }
+
+                showCardsAudio.play();
 
             } else {
 
@@ -640,16 +660,19 @@
             flop1.hidden = false;
             flop2.hidden = false;
             flop3.hidden = false;
+            //showCardsAudio.play();
         }
 
         function doTurn() {
             move_log.value += ( "Turn is dealt\n" );
             turn.hidden = false;
+            //showCardsAudio.play();
         }
 
         function doRiver() {
             move_log.value += ( "River is dealt\n" );
             river.hidden = false;
+            //showCardsAudio.play();
         }
 
         function changeOppTurn() {
@@ -662,6 +685,7 @@
             call_button.hidden = true;
             fold_button.hidden = true;
             check_button.hidden = true;
+            changeTurnAudio.play();
         }
 
         function hideChips() {
@@ -697,6 +721,7 @@
             }, 1000)*/
 
             setBetAmount();
+            changeTurnAudio.play();
         }
 
         function setBlinds(isDealer) {
@@ -825,6 +850,7 @@
                     }
                 }
 
+                showCardsAudio.play();
                 setEverythingEmpty();
                 hand += 1;
 

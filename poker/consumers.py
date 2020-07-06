@@ -618,9 +618,8 @@ class DealNewHandConsumer(WebsocketConsumer):
         table_name = event['room_name']
         table = Table.objects.get(table_name=table_name)
         sentby = event['sentby']
-        sleep(15)
+        sleep(10)
         print("Done sleeping")
-        #if dealer == sentby:
         
         if sentby == table.player1:
             self.send(text_data=json.dumps({
