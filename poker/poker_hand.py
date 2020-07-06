@@ -138,11 +138,12 @@ def findWinner(player1_hand,player2_hand,player1,player2):
             return [player2,player2_hand[0],player1_hand,player2_hand]
         
         #check last high card
-        n1 = player1_hand[4].find("_")
-        sub1 = player1_hand[4][0:n1]
+        n1 = player1_hand[5].find("_")
+        sub1 = player1_hand[5][0:n1]
         
-        n2 = player2_hand[4].find("_")
-        sub2 = player2_hand[4][0:n2]
+        n2 = player2_hand[5].find("_")
+        sub2 = player2_hand[5][0:n2]
+        print(sub1, " ",sub2)
         
         
         if card_highs.index(sub1) > card_highs.index(sub2):
@@ -208,7 +209,7 @@ def findWinner(player1_hand,player2_hand,player1,player2):
         elif card_highs.index(sub1) < card_highs.index(sub2):
             return [player2,player2_hand[0],player1_hand,player2_hand]
         
-        
+        #both player can't have same quads so just check what is the higher quads
         '''player1Hand = player1_hand[4:]
         player2Hand = player2_hand[4:]
         for i in range(0,len(player1Hand)):
@@ -239,11 +240,11 @@ def findWinner(player1_hand,player2_hand,player1,player2):
         elif card_highs.index(sub1) < card_highs.index(sub2):
             return [player2,player2_hand[0],player1_hand,player2_hand]
         
-        n1 = player1_hand[3].find("_")
-        sub1 = player1_hand[3][0:n1]
+        n1 = player1_hand[4].find("_")
+        sub1 = player1_hand[4][0:n1]
         
-        n2 = player2_hand[3].find("_")
-        sub2 = player2_hand[3][0:n2]
+        n2 = player2_hand[4].find("_")
+        sub2 = player2_hand[4][0:n2]
         
         if card_highs.index(sub1) > card_highs.index(sub2):
             return [player1,player1_hand[0],player1_hand,player2_hand]
@@ -571,4 +572,4 @@ def checkHighCard(cards_left):
 
 if __name__ == "__main__":
     #print(getHand(['3_of_clubs', '7_of_spades','queen_of_diamonds','10_of_spades', 'jack_of_spades', '4_of_hearts', '9_of_spades']))
-    print(checkHands("player1",['2_of_clubs', 'ace_of_spades'],"player2",['ace_of_clubs','5_of_spades'],['king_of_hearts', '2_of_diamonds', '4_of_hearts'],"3_of_diamonds","7_of_spades"))
+    print(checkHands("player1",['7_of_clubs', '8_of_spades'],"player2",['7_of_clubs','9_of_spades'],['ace_of_hearts', '2_of_diamonds', '7_of_hearts'],"4_of_diamonds","7_of_spades"))
