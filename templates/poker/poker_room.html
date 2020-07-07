@@ -164,41 +164,41 @@
         const roomName = JSON.parse(document.getElementById('room-name').textContent);
 
         const chatSocket = new WebSocket(
-            'ws://'
+            'wss://'
             + window.location.host
-            + '/ws/chat/'
+            + '/wss/chat/'
             + roomName 
             + '/{{username}}/'
         );
 
         const newPlayerSocket = new WebSocket(
-            'ws://'
+            'wss://'
             + window.location.host
-            + '/ws/poker/'
+            + '/wss/poker/'
             + roomName
             + '/newUserConnected/{{username}}/'
         );
 
         const playerDecisionSocket = new WebSocket(
-            'ws://'
+            'wss://'
             + window.location.host
-            + '/ws/poker/'
+            + '/wss/poker/'
             + roomName
             + '/playerDecision/{{username}}/'
         );
 
         const handWinnerSocket = new WebSocket(
-            'ws://'
+            'wss://'
             + window.location.host
-            + '/ws/poker/'
+            + '/wss/poker/'
             + roomName
             + '/getHandWinner/'
         );
 
         const dealNewHand = new WebSocket(
-            'ws://'
+            'wss://'
             + window.location.host
-            + '/ws/poker/'
+            + '/wss/poker/'
             + roomName
             + '/dealNewHand/'
         );
