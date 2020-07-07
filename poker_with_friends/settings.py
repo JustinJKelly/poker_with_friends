@@ -54,6 +54,10 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+if bool(int(os.environ.get("DEBUG"))) == False:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = True
+
 ROOT_URLCONF = 'poker_with_friends.urls'
 
 TEMPLATES = [
@@ -76,7 +80,7 @@ ASGI_APPLICATION = "poker_with_friends.routing.application"
 #ASGI_THREADS = 5
 WSGI_APPLICATION = 'poker_with_friends.wsgi.application'
 
-print(bool(int(os.environ.get("DEBUG"))))
+#print(bool(int(os.environ.get("DEBUG"))))
 if bool(int(os.environ.get("DEBUG"))) == False:
     CHANNEL_LAYERS = {
         'default': {
