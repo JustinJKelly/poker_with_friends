@@ -74,15 +74,23 @@
 <body id="body" style="font-size:14px;">
     <audio id="gameStartAudio">
         <source src="{% static "to-the-point.mp3" %}" type="audio/mpeg">
-        Your browser does not support the audio element.
+        Your browsser does not support the audio element.
+    </audio>
+    <audio id="cardsDisplayedAudio">
+        <source src="{% static "definite.mp3" %}" type="audio/mpeg">
+        Your browsser does not support the audio element.
     </audio>
     <audio id="changeTurnAudio">
         <source src="{% static "your-turn.mp3" %}" type="audio/mpeg">
-        Your browser does not support the audio element.
+        Your browsser does not support the audio element.
     </audio>
     <audio id="showCardsAudio">
         <source src="{% static "knob.mp3" %}" type="audio/mpeg">
-        Your browser does not support the audio element.
+        Your browsser does not support the audio element.
+    </audio>
+    <audio id="messageReceivedAudio">
+        <source src="{% static "that-was-quick.mp3" %}" type="audio/mpeg">
+        Your browsser does not support the audio element.
     </audio>
 
     <div>
@@ -93,13 +101,13 @@
     <div id="game_on" hidden>
         <div class="sidenav">
             <h5 style="color:white;"> Chat </h5>
-            <textarea id="chat-log" overflow="scroll" cols="30" rows="15"></textarea><br>
+            <textarea id="chat-log" overflow="scroll" cols="30" rowss="15"></textarea><br>
             <input id="chat-message-input" placeholder="Enter message..." type="text" size="30"><br>
             <input id="chat-message-submit" type="button" value="Send">
             <br/>
             <br/>
             <h5 style="color:white;">Feed</h5>
-            <textarea id="move_log" overflow="scroll" cols="30" rows="10"></textarea><br>
+            <textarea id="move_log" overflow="scroll" cols="30" rowss="10"></textarea><br>
         </div>
         <div>
             <center style="margin-left:200px;"> 
@@ -195,6 +203,14 @@
             + '/getHandWinner/'
         );
 
+        const allInSocket = new WebSocket(
+            'wss://'
+            + window.location.host
+            + '/wss/poker/'
+            + roomName
+            + '/allIn/'
+        );
+
         const dealNewHand = new WebSocket(
             'wss://'
             + window.location.host
@@ -211,6 +227,8 @@
         const gameStartAudio = document.querySelector("#gameStartAudio");
         const changeTurnAudio = document.querySelector("#changeTurnAudio");
         const showCardsAudio = document.querySelector("#showCardsAudio");
+        const messageReceivedAudio = document.querySelector("#messageReceivedAudio");
+        const cardsDisplayedAudio = document.querySelector("#cardsDisplayedAudio");
         const display = document.querySelector('#time_remaining');
         const body = document.querySelector('#body');
         const game_on = document.querySelector("#game_on");
@@ -331,6 +349,7 @@
         /////CHAT
         chatSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
+            messageReceivedAudio.play();
             chat_log.value += ( data.username + ": " + data.message + '\n');
         };
 
@@ -359,7 +378,11 @@
 
         //START POKER DATA PATH
         check_button.onclick = function(e) {
+
+            disableButtons();
             setButtonsHidden();
+            reEnableButtons();
+
             //myStopFunction(); //stop timer
             playerDecisionSocket.send(JSON.stringify({
                 'sentby': username,
@@ -376,7 +399,9 @@
 
         call_button.onclick = function(e) {
             //myStopFunction();
+            disableButtons();
             setButtonsHidden();
+            reEnableButtons();
 
             var call_amount = opp_bet - my_bet; //get the amount left to call
 
@@ -398,7 +423,9 @@
 
         fold_button.onclick = function(e) {
             //myStopFunction();
+            disableButtons();
             setButtonsHidden();
+            reEnableButtons();
 
             playerDecisionSocket.send(JSON.stringify({
                 'sentby': username,
@@ -415,22 +442,52 @@
 
         bet_button.onclick = function(e) {
             //myStopFunction();
-            var bet_amount = parseInt(bet_amount_input.value);
-            setButtonsHidden();
 
-            //send a message with the bet to the socket
-            playerDecisionSocket.send(JSON.stringify({
-                'sentby': username,
-                'decision': "bet",
-                'betamount': bet_amount,
-                'sentby_stack': (my_stack+my_bet-bet_amount),
-                'other_stack': opp_stack,
-                'sentby_bet': bet_amount,
-                'other_bet': opp_bet,
-                'new_turn': username_opp,
-                'pot': (pot+bet_amount) - my_bet,
-            }));
-            
+            disableButtons();
+            if (isNaN(bet_amount_input.value)) {
+                alert("Invalid bet amount, please enter valid bet size");
+                reEnableButtons();
+                return;
+            }
+
+            var bet_amount = parseInt(bet_amount_input.value);
+            //alert("my_stack:" + my_stack + "   my_chips_bet:" + my_bet + "   bet:" + bet_amount );
+            if (bet_amount > (my_stack+my_bet) ) {
+                alert("Invalid bet amount, please enter valid bet size");
+                reEnableButtons();
+            } else {
+
+                reEnableButtons();
+                setButtonsHidden();
+
+                //send a message with the bet to the socket
+                playerDecisionSocket.send(JSON.stringify({
+                    'sentby': username,
+                    'decision': "bet",
+                    'betamount': bet_amount,
+                    'sentby_stack': (my_stack+my_bet-bet_amount),
+                    'other_stack': opp_stack,
+                    'sentby_bet': bet_amount,
+                    'other_bet': opp_bet,
+                    'new_turn': username_opp,
+                    'pot': (pot+bet_amount) - my_bet,
+                }));
+            }
+                
+        }
+
+        function disableButtons() {
+            bet_button.disabled = true;
+            check_button.disabled = true;
+            call_button.disabled = true;
+            fold_button.disabled = true;
+        }
+
+        function reEnableButtons() {
+            bet_button.disabled = false;
+            check_button.disabled = false;
+            call_button.disabled = false;
+            fold_button.disabled = false;
         }
 
         function setButtonsHidden() {
@@ -485,17 +542,25 @@
                 showCardsAudio.play();
 
             } else {
-
+                var allin = false;
                 if (sentby == username) {
                     my_stack = parseInt(data.sentby_stack);
                     opp_stack = parseInt(data.other_stack);
                     my_bet = parseInt(data.sentby_bet);
                     opp_bet = parseInt(data.other_bet);
+
+                    if ( (my_stack == 0 || opp_stack == 0) &&  my_bet == opp_bet) {
+                        allin = true;
+                    }
                 } else {
                     my_stack = parseInt(data.other_stack);
                     opp_stack = parseInt(data.sentby_stack);
                     my_bet = parseInt(data.other_bet);
                     opp_bet = parseInt(data.sentby_bet);
+
+                    if ( (my_stack == 0 || opp_stack == 0) &&  my_bet == opp_bet) {
+                        allin = true;
+                    }
                 }
 
                 //alert("my_stack " + my_stack + "  opp_stack " + opp_stack + "\nmy_bet " + my_bet + " opp_bet " + opp_bet);
@@ -511,12 +576,15 @@
                 //alert(typeof(pot) + " " +  pot);
                 pot_size.innerHTML = pot;
 
-
-
                 var turn = data.turn;
                 //alert("sent by:" + data.sentby + "  decision:" + data.decision);
 
-                if (decision == "bet") {
+                if (allin) {
+                    allInSocket.send(JSON.stringify({
+                        "sentby":username,
+                        "table_name": "{{room_name}}",
+                    }));
+                } else if (decision == "bet") {
                     move_log.value += ( sentby + " bets " + data.betamount + "\n" );
                     changeUIBet(sentby);
                 } else if (decision == "call") {
@@ -661,18 +729,21 @@
             flop2.hidden = false;
             flop3.hidden = false;
             //showCardsAudio.play();
+            //cardsDisplayedAudio.play();
         }
 
         function doTurn() {
             move_log.value += ( "Turn is dealt\n" );
             turn.hidden = false;
             //showCardsAudio.play();
+            //cardsDisplayedAudio.play();
         }
 
         function doRiver() {
             move_log.value += ( "River is dealt\n" );
             river.hidden = false;
             //showCardsAudio.play();
+            //cardsDisplayedAudio.play();
         }
 
         function changeOppTurn() {
@@ -804,6 +875,7 @@
                             timer: 6000
                         });
 
+                        setButtonsHidden();
                         return;
                     }
                     
@@ -846,6 +918,7 @@
                             confirmButtonText: "Go Back",
                             timer: 10000
                         });
+                        setButtonsHidden();
                         return;
                     }
                 }
@@ -980,7 +1053,7 @@
 
         }
 
-         function setBetAmount() {
+        function setBetAmount() {
             bet_button.hidden = true;
             call_button.hidden = true;
             fold_button.hidden = true;
@@ -1013,6 +1086,37 @@
             bet_amount_input.max = parseInt(my_stack) + my_bet;
         }
 
+        allInSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            allInAnimation();
+        }
+
+        async function allInAnimation() {
+
+            if (needFlop) {
+                cardsDisplayedAudio.play();
+                doFlop();
+                await sleep(2000);
+            }
+
+            if (needTurn) {
+                cardsDisplayedAudio.play();
+                doTurn();
+                await sleep(2000);
+            }
+
+            if (needRiver) {
+                cardsDisplayedAudio.play();
+                doRiver();
+                await sleep(2000);
+            }
+
+            checkHands();
+        }
+        
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
 
 
    </script>
