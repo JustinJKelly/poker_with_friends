@@ -452,7 +452,7 @@
 
             var bet_amount = parseInt(bet_amount_input.value);
             //alert("my_stack:" + my_stack + "   my_chips_bet:" + my_bet + "   bet:" + bet_amount );
-            if (bet_amount > (my_stack+my_bet) ) {
+            if (bet_amount > (my_stack+my_bet) || bet_amount < big_blind) {
                 alert("Invalid bet amount, please enter valid bet size");
                 reEnableButtons();
             } else {
