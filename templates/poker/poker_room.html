@@ -406,22 +406,35 @@
             var call_amount = opp_bet - my_bet; //get the amount left to call
 
             if (call_amount > (my_stack+my_bet)) {
+                alert("here");
                 call_amount = (my_stack+my_bet);
-            }
+                var diff = opp_bet - (call_amount);
+                playerDecisionSocket.send(JSON.stringify({
+                    'sentby': username,
+                    'decision': "call",
+                    'callamount': call_amount,
+                    'sentby_stack': 0,
+                    'other_stack': opp_stack+diff,
+                    'sentby_bet': (call_amount),
+                    'other_bet': opp_bet-diff,
+                    'new_turn': username_opp,
+                    'pot': pot+(call_amount)-diff,
+                }));
 
-            //alert("will send " + (pot+call_amount));
-            //send a message with the bet to the socket
-            playerDecisionSocket.send(JSON.stringify({
-                'sentby': username,
-                'decision': "call",
-                'callamount': call_amount,
-                'sentby_stack': (my_stack-call_amount),
-                'other_stack': opp_stack,
-                'sentby_bet': (call_amount+my_bet),
-                'other_bet': opp_bet,
-                'new_turn': username_opp,
-                'pot': (pot+call_amount),
-            }));
+            } else {
+
+                playerDecisionSocket.send(JSON.stringify({
+                    'sentby': username,
+                    'decision': "call",
+                    'callamount': call_amount,
+                    'sentby_stack': (my_stack-call_amount),
+                    'other_stack': opp_stack,
+                    'sentby_bet': (call_amount+my_bet),
+                    'other_bet': opp_bet,
+                    'new_turn': username_opp,
+                    'pot': (pot+call_amount),
+                }));
+            }
             
         }
 
@@ -456,7 +469,7 @@
 
             var bet_amount = parseInt(bet_amount_input.value);
             //alert("my_stack:" + my_stack + "   my_chips_bet:" + my_bet + "   bet:" + bet_amount );
-            if (bet_amount > (my_stack+my_bet) || bet_amount < big_blind) {
+            if (bet_amount > (my_stack+my_bet) || bet_amount < big_blind || bet_amount < (opp_bet*2)) {
                 alert("Invalid bet amount, please enter valid bet size");
                 reEnableButtons();
             } else {
