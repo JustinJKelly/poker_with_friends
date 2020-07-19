@@ -405,6 +405,10 @@
 
             var call_amount = opp_bet - my_bet; //get the amount left to call
 
+            if (call_amount > (my_stack+my_bet)) {
+                call_amount = (my_stack+my_bet);
+            }
+
             //alert("will send " + (pot+call_amount));
             //send a message with the bet to the socket
             playerDecisionSocket.send(JSON.stringify({
