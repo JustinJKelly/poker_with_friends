@@ -404,6 +404,7 @@
             reEnableButtons();
 
             var call_amount = opp_bet - my_bet; //get the amount left to call
+            //alert(call_amount + " " + (my_stack+my_bet));
 
             if (call_amount > (my_stack+my_bet)) {
                 alert("here");
@@ -418,7 +419,7 @@
                     'sentby_bet': (call_amount),
                     'other_bet': opp_bet-diff,
                     'new_turn': username_opp,
-                    'pot': pot+(call_amount)-diff,
+                    'pot': pot+(call_amount)-my_bet-diff,
                 }));
 
             } else {
