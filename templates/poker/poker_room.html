@@ -404,9 +404,9 @@
             reEnableButtons();
 
             var call_amount = opp_bet - my_bet; //get the amount left to call
-            //alert(call_amount + " " + (my_stack+my_bet));
+            alert(call_amount + " " + (my_stack+my_bet) + " " + opp_bet);
 
-            if (call_amount > (my_stack+my_bet)) {
+            if (opp_bet > (my_stack+my_bet)) {
                 alert("here");
                 call_amount = (my_stack+my_bet);
                 var diff = opp_bet - (call_amount);
@@ -470,7 +470,7 @@
 
             var bet_amount = parseInt(bet_amount_input.value);
             //alert("my_stack:" + my_stack + "   my_chips_bet:" + my_bet + "   bet:" + bet_amount );
-            if (bet_amount > (my_stack+my_bet) || bet_amount < big_blind || bet_amount < (opp_bet*2)) {
+            if (bet_amount > (my_stack+my_bet) || bet_amount < big_blind || (bet_amount < (opp_bet*2) && bet_amount != (my_stack+my_bet))) {
                 alert("Invalid bet amount, please enter valid bet size");
                 reEnableButtons();
             } else {
