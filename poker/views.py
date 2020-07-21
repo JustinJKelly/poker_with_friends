@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseRedirect
 from .forms import MakeTableForm, JoinTableForm
 from django.contrib import messages
-#from .models import Table
+from .models import Table
 from .deal_cards import deal_cards
 from django.urls import reverse
 
