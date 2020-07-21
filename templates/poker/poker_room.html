@@ -219,6 +219,26 @@
             + '/dealNewHand/'
         );
 
+        const errorSocket = new WebSocket(
+            'wss://'
+            + window.location.host
+            + '/wss/poker/'
+            + roomName
+            + '/errorSocket/'
+        );
+
+        window.onbeforeunload = function(){
+            return 'Are you sure you want to leave?';
+        };
+
+        if ("{{reconnection}}" == "yes") {
+            errorSocket.send(JSON.stringify({
+                "sentby":"{{username}}",
+                "table_name": "{{room_name}}",
+                'issue': "reconnection",
+            }));
+        }
+
         var decision_time = 30;//"{{decision_time}}";
         var opp_last_move = null;
         var my_last_move = null;
@@ -393,6 +413,9 @@
                 'sentby_bet': my_bet,
                 'other_bet': opp_bet,
                 'pot': pot,
+                "flop_displayed": !needFlop,
+                "turn_displayed": !needTurn,
+                "river_displayed": !needRiver,
             }));
 
         }
@@ -407,7 +430,7 @@
             //alert(call_amount + " " + (my_stack+my_bet) + " " + opp_bet);
 
             if (opp_bet > (my_stack+my_bet)) {
-                alert("here");
+                //alert("here");
                 call_amount = (my_stack+my_bet);
                 var diff = opp_bet - (call_amount);
                 playerDecisionSocket.send(JSON.stringify({
@@ -420,6 +443,9 @@
                     'other_bet': opp_bet-diff,
                     'new_turn': username_opp,
                     'pot': pot+(call_amount)-my_bet-diff,
+                    "flop_displayed": !needFlop,
+                    "turn_displayed": !needTurn,
+                    "river_displayed": !needRiver,
                 }));
 
             } else {
@@ -434,6 +460,9 @@
                     'other_bet': opp_bet,
                     'new_turn': username_opp,
                     'pot': (pot+call_amount),
+                    "flop_displayed": !needFlop,
+                    "turn_displayed": !needTurn,
+                    "river_displayed": !needRiver,
                 }));
             }
             
@@ -455,6 +484,9 @@
                 'dealer': dealer,
                 'new_turn': username_opp,
                 'pot': pot,
+                "flop_displayed": !needFlop,
+                "turn_displayed": !needTurn,
+                "river_displayed": !needRiver,
             }));
         }
 
@@ -489,6 +521,9 @@
                     'other_bet': opp_bet,
                     'new_turn': username_opp,
                     'pot': (pot+bet_amount) - my_bet,
+                    "flop_displayed": !needFlop,
+                    "turn_displayed": !needTurn,
+                    "river_displayed": !needRiver,
                 }));
             }
                 
@@ -1107,6 +1142,85 @@
         allInSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
             allInAnimation();
+        }
+
+        allInSocket.onclose = function(e) {
+            console.error('allInSocket  closed unexpectedly');
+            errorSocket.send(JSON.stringify({
+                "sentby":username,
+                "table_name": "{{room_name}}",
+            }));
+        };
+
+        handWinnerSocket.onclose = function(e) {
+            console.error('handWinnerSocket closed unexpectedly');
+            errorSocket.send(JSON.stringify({
+                "sentby":username,
+                "table_name": "{{room_name}}",
+            }));
+        };
+
+        newPlayerSocket.onclose = function(e) {
+            console.error('newPlayerSocket closed unexpectedly');
+            errorSocket.send(JSON.stringify({
+                "sentby":username,
+                "table_name": "{{room_name}}",
+            }));
+        };
+
+        playerDecisionSocket.onclose = function(e) {
+            console.error('playerDecisionSocket closed unexpectedly');
+            errorSocket.send(JSON.stringify({
+                "sentby":username,
+                "table_name": "{{room_name}}",
+            }));
+        };
+
+        errorSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+
+            if (data.issue == "reconnect") {
+                updateUI();
+            } else {
+                if (data.sentby == username) {
+                    Swal.fire({
+                        title: "Network Error!",
+                        text: data.message_error,
+                        confirmButtonText: "Go Back",
+                        timer: 10000
+                    });
+                } else {
+                    Swal.fire({
+                        title: "Network Error!",
+                        text: data.message_other, 
+                        confirmButtonText: "Go Back",
+                        timer: 10000
+                    });
+
+                }
+            }
+
+        }
+
+        function updateUI() {
+            if ("{{flop_displayed}}") {
+                doFlop();
+                needFlop = false;
+            }
+
+            if ("{{turn_displayed}}") {
+                doTurn();
+                needTurn = false;
+            }
+
+            if ("{{river_displayed}}") {
+                doRiver();
+                needRiver = false;
+            }
+
+            if ("{{my_turn}}") {
+                //need to finish
+            }
         }
 
         async function allInAnimation() {

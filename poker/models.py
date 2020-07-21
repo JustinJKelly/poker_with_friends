@@ -47,6 +47,11 @@ class Table(models.Model):
     pot_size = models.IntegerField(default=0)
     turn_card = models.CharField(max_length=25,default="none")
     river_card = models.CharField(max_length=25,default="none")
+    error = models.BooleanField(default=False)
+    player_error = models.CharField(max_length=25)
+    flop_displayed = models.BooleanField(default=False)
+    turn_displayed = models.BooleanField(default=False)
+    river_displayed = models.BooleanField(default=False)
     
     
     

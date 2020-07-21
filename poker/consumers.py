@@ -600,6 +600,10 @@ class DealNewHandConsumer(WebsocketConsumer):
             table.turn_card = cards[7]
             table.river_card = cards[8]
         
+        table.flop_displayed = False
+        table.turn_displayed = False
+        table.river_displayed = False
+        
         table.save()
 
         # Send message to room group
@@ -696,4 +700,79 @@ class AllInConsumer(WebsocketConsumer):
             print("sent1234545677")
             self.send(text_data=json.dumps({
                 "sentby": sentby,
+            }))
+            
+            
+class ErrorConsumer(WebsocketConsumer):
+    def connect(self):
+        self.room_name = self.scope['url_route']['kwargs']['room_name']
+        self.room_group_name = 'error_%s' % self.room_name
+
+        async_to_sync(self.channel_layer.group_add)(
+            self.room_group_name,
+            self.channel_name
+        )
+
+        self.accept()
+    
+    def disconnect(self, close_code):
+        # Leave room group
+        async_to_sync(self.channel_layer.group_discard)(
+            self.room_group_name,
+            self.channel_name
+        )
+
+    # Receive message from WebSocket
+    def receive(self, text_data):
+        text_data_json = json.loads(text_data)
+        sentby = text_data_json['sentby']
+        room_name = text_data_json['table_name']
+        issue = text_data_json['issue']
+        
+        if issue == "issue":
+            # Send message to room group
+            async_to_sync(self.channel_layer.group_send)(
+                self.room_group_name,
+                {
+                    'type': 'error',
+                    'sentby': sentby,
+                    'room_name': room_name,
+                }
+            )
+        else:
+            # Send message to room group
+            async_to_sync(self.channel_layer.group_send)(
+                self.room_group_name,
+                {
+                    'type': 'reconnected',
+                    'sentby': sentby,
+                    'room_name': room_name,
+                }
+            )
+
+    def error(self, event):
+        sentby = event['sentby']
+        table_name = event['room_name']
+        table = Table.objects.get(table_name=table_name)
+        
+        if sentby == table.dealer:
+            self.send(text_data=json.dumps({
+                "sentby": sentby,
+                "message_other": "Error in network. Trying to reconnect with opponent. Please Standby.",
+                "message_error": "Error in network caused disconnect. Please try to re-enter table with same credentials.",
+                "issue": "issue",
+            }))
+            
+    def reconnected(self, event):
+        sentby = event['sentby']
+        table_name = event['room_name']
+        table = Table.objects.get(table_name=table_name)
+        table.error = False
+        table.player_error = ""
+        table.save()
+        
+        if sentby == table.dealer:
+            self.send(text_data=json.dumps({
+                "sentby": sentby,
+                "issue": "reconnect",
             }))

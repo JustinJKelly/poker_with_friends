@@ -38,6 +38,15 @@ def join_table(request):
                 elif table.player2 == "none": 
                     table.player2 = request.POST['username']
                     table.save()
+                elif table.error:
+                    if table.player1 == request.POST['username'] or table.player2 == request.POST['username']:
+                        redirect = HttpResponseRedirect("/poker/table/"+table.table_name)
+                        request.session['username'] = request.POST['username']
+                        request.session['table_id'] = request.POST['chosen_table']
+                        return redirect
+                    else:
+                        return HttpResponse("Table full")
+                        
                 else:
                     return HttpResponse("Table full")
                 redirect = HttpResponseRedirect("/poker/table/"+table.table_name)
@@ -184,6 +193,14 @@ def room_protected(request,room_name,table_id,):
         context['pot_size'] = table.pot_size
         context['turn_card'] = table.turn_card
         context['river_card'] = table.river_card
+        
+    if table.player1 != "none" and table.player2 != "none" and table.error:
+        context["reconnection"] = "yes"
+        context["flop_displayed"] = table.flop_displayed
+        context["turn_displayed"] = table.turn_displayed
+        context["river_displayed"] = table.river_displayed
+    else:
+        context["reconnection"] = "no"
         
     context['dealer'] = table.dealer
     
