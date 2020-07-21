@@ -52,11 +52,11 @@ def join_table(request):
                 redirect = HttpResponseRedirect("/poker/table/"+table.table_name)
                 request.session['username'] = request.POST['username']
                 request.session['table_id'] = request.POST['chosen_table']
-                return redirect'''
+                return redirect
             else:
                 messages.add_message(request, messages.ERROR, 'Error in processing form data')
                 form = JoinTableForm()
-                return render(request,"poker/join_table.html",{'form':form})
+                return render(request,"poker/join_table.html",{'form':form})'''
         else:
             messages.add_message(request, messages.ERROR, 'Error in processing form data')
             form = JoinTableForm()
