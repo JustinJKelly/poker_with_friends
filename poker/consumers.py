@@ -4,7 +4,7 @@ import json
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 from channels_presence.models import Room
-#from .models import Table
+from .models import Table
 from .poker_hand import checkHands
 from .deal_cards import deal_cards
 from time import sleep

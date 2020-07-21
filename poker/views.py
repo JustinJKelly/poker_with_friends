@@ -30,7 +30,7 @@ def join_table(request):
             print(request.POST['chosen_table'])
             #print(request.POST['access_code'])
             print(request.POST['username'])
-            '''table = Table.objects.get(table_id=request.POST['chosen_table'])
+            table = Table.objects.get(table_id=request.POST['chosen_table'])
             if request.POST['access_code'] == table.access_code :
                 if table.player1 == "none": 
                     table.player1 = request.POST['username']
@@ -56,7 +56,7 @@ def join_table(request):
             else:
                 messages.add_message(request, messages.ERROR, 'Error in processing form data')
                 form = JoinTableForm()
-                return render(request,"poker/join_table.html",{'form':form})'''
+                return render(request,"poker/join_table.html",{'form':form})
         else:
             messages.add_message(request, messages.ERROR, 'Error in processing form data')
             form = JoinTableForm()
@@ -103,10 +103,10 @@ def room(request, room_name):
     return redirect("/poker/table/"+request.session.get('table_id')+"/"+room_name)
 
 def room_protected(request,room_name,table_id,):
-    '''table = Table.objects.get(table_id=table_id)
-    print("look here",table.table_name)'''
+    table = Table.objects.get(table_id=table_id)
+    print("look here",table.table_name)
     context = {}
-    '''if 'username' in request.session:
+    if 'username' in request.session:
         username = request.session.get('username')
     
     if table.player2 == "none":
@@ -194,7 +194,7 @@ def room_protected(request,room_name,table_id,):
         context["turn_displayed"] = table.turn_displayed
         context["river_displayed"] = table.river_displayed
     else:
-        context["reconnection"] = "no"'''
+        context["reconnection"] = "no"
         
     context['dealer'] = table.dealer
     
