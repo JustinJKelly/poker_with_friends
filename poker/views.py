@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseRedirect
 from .forms import MakeTableForm, JoinTableForm
 from django.contrib import messages
-from .models import Table
+#from .models import Table
 from .deal_cards import deal_cards
 from django.urls import reverse
 
@@ -30,7 +30,7 @@ def join_table(request):
             print(request.POST['chosen_table'])
             #print(request.POST['access_code'])
             print(request.POST['username'])
-            table = Table.objects.get(table_id=request.POST['chosen_table'])
+            '''table = Table.objects.get(table_id=request.POST['chosen_table'])
             if request.POST['access_code'] == table.access_code :
                 if table.player1 == "none": 
                     table.player1 = request.POST['username']
@@ -52,7 +52,7 @@ def join_table(request):
                 redirect = HttpResponseRedirect("/poker/table/"+table.table_name)
                 request.session['username'] = request.POST['username']
                 request.session['table_id'] = request.POST['chosen_table']
-                return redirect
+                return redirect'''
             else:
                 messages.add_message(request, messages.ERROR, 'Error in processing form data')
                 form = JoinTableForm()
@@ -103,22 +103,16 @@ def room(request, room_name):
     return redirect("/poker/table/"+request.session.get('table_id')+"/"+room_name)
 
 def room_protected(request,room_name,table_id,):
-    table = Table.objects.get(table_id=table_id)
-    print("look here",table.table_name)
+    '''table = Table.objects.get(table_id=table_id)
+    print("look here",table.table_name)'''
     context = {}
-    if 'username' in request.session:
+    '''if 'username' in request.session:
         username = request.session.get('username')
     
     if table.player2 == "none":
         cards = deal_cards(2)
         table.dealer = username
-        
-        '''context['flop_card1'] = cards[4]
-        context['flop_card2'] = cards[5]
-        context['flop_card3'] = cards[6]
-        context['pot_size'] = table.pot_size
-        context['turn_card'] = cards[7]
-        context['river_card'] = cards[8]'''
+    
         print(cards, " ")
         
         table.player1_card1 = cards[0]
@@ -200,7 +194,7 @@ def room_protected(request,room_name,table_id,):
         context["turn_displayed"] = table.turn_displayed
         context["river_displayed"] = table.river_displayed
     else:
-        context["reconnection"] = "no"
+        context["reconnection"] = "no"'''
         
     context['dealer'] = table.dealer
     
