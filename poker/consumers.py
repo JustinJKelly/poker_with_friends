@@ -680,6 +680,7 @@ class AllInConsumer(WebsocketConsumer):
         text_data_json = json.loads(text_data)
         sentby = text_data_json['sentby']
         room_name = text_data_json['table_name']
+        not_enough = text_data_json['not_enough']
 
         # Send message to room group
         async_to_sync(self.channel_layer.group_send)(
@@ -688,18 +689,22 @@ class AllInConsumer(WebsocketConsumer):
                 'type': 'all_in',
                 'sentby': sentby,
                 'room_name': room_name,
+                'not_enough': not_enough,
             }
         )
 
     def all_in(self, event):
         sentby = event['sentby']
         table_name = event['room_name']
+        not_enough = event['not_enough']
         table = Table.objects.get(table_name=table_name)
         
         if sentby == table.dealer:
             print("sent1234545677")
+            print(not_enough)
             self.send(text_data=json.dumps({
                 "sentby": sentby,
+                "not_enough": not_enough,
             }))
             
             
