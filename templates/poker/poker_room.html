@@ -231,13 +231,13 @@
             return 'Are you sure you want to leave?';
         };
 
-        if ("{{reconnection}}" == "yes") {
+        /*if ("{{reconnection}}" == "yes") {
             errorSocket.send(JSON.stringify({
                 "sentby":"{{username}}",
                 "table_name": "{{room_name}}",
                 'issue': "reconnection",
             }));
-        }
+        }*/
 
         var decision_time = 30;//"{{decision_time}}";
         var opp_last_move = null;
@@ -636,6 +636,7 @@
                     allInSocket.send(JSON.stringify({
                         "sentby":username,
                         "table_name": "{{room_name}}",
+                        "not_enough": "no",
                     }));
                 } else if (decision == "bet") {
                     move_log.value += ( sentby + " bets " + data.betamount + "\n" );
@@ -906,6 +907,7 @@
                 card2_opp.src = "/static/img/" + opp_card2  + ".png";
 
                 if (username == winner) {
+                    opp_move_waiting.hidden = true;
                     Swal.fire({
                         title: "You win hand!",
                         text: winner + " wins the hand with a " + winning_hand + "(" + pot + ")",
@@ -933,6 +935,7 @@
                     }
                     
                 } else if (winner == "both") {
+                    opp_move_waiting.hidden = true;
                     Swal.fire({
                         title: "Split Pot!",
                         text: "Hand is a tie!",
@@ -951,6 +954,7 @@
                 
                 
                 } else {
+                    opp_move_waiting.hidden = true;
                     Swal.fire({
                         title: "Opp wins hand!",
                         text: winner + " wins the hand with a " + winning_hand + "(" + pot + ")\n",
@@ -1040,17 +1044,6 @@
                     card2_opp.src = "/static/img/back_of_card.png";
                 }
 
-
-                if (username == dealer) {
-                    setBlinds(true);
-                    changeMyTurn(); //update UI to show it's my turn
-                    setBetAmount();
-                } else {
-                    setBlinds(false);
-                    changeOppTurn(); //update UI to show it's my turn
-                    setBetAmount();
-                }
-
                 flop1.hidden = true;
                 flop2.hidden = true;
                 flop3.hidden = true;
@@ -1064,6 +1057,32 @@
                 river.src = "/static/img/" + river_card + ".png";
 
                 move_log.value += ( "Cards dealt & blinds set.\n" );
+
+                if (my_stack <= big_blind) {
+                    //alert("not_enough");
+                    allInSocket.send(JSON.stringify({
+                        "sentby":username,
+                        "table_name": "{{room_name}}",
+                        "not_enough": "yes",
+                    }));
+                } else if (opp_stack <= big_blind) {
+                    //alert("not_enough");
+                    allInSocket.send(JSON.stringify({
+                        "sentby": "{{opp_username}}",
+                        "table_name": "{{room_name}}",
+                        "not_enough": "yes",
+                    }));
+                } else {
+                    if (username == dealer) {
+                        setBlinds(true);
+                        changeMyTurn(); //update UI to show it's my turn
+                        setBetAmount();
+                    } else {
+                        setBlinds(false);
+                        changeOppTurn(); //update UI to show it's my turn
+                        setBetAmount();
+                    }
+                }
             }
 
         }
@@ -1125,8 +1144,13 @@
             }
 
             if (opp_bet == 0) {
-                bet_amount_input.min = big_blind;
-                bet_amount_input.value = big_blind
+                if (my_stack < big_blind) {
+                    bet_amount_input.min = my_stack
+                    bet_amount_input.value = my_stack;
+                } else {
+                    bet_amount_input.min = big_blind;
+                    bet_amount_input.value = big_blind;
+                }
             } else if (opp_bet >= my_bet) { //can be else I think
                 if (my_stack < opp_bet * 2) {
                     bet_amount_input.min = parseInt(my_stack) + my_bet;
@@ -1141,6 +1165,30 @@
 
         allInSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
+
+            //alert(data.not_enough);
+            if (data.not_enough == "yes") {
+                if (data.sentby == username) {
+                    my_bet = my_stack;
+                    opp_bet = my_stack;
+
+                    my_stack = 0;
+                    opp_stack -= opp_bet;
+                } else {
+                    opp_bet = opp_stack;
+                    my_bet = opp_stack;
+
+                    opp_stack = 0;
+                    my_stack -= my_bet;
+                }
+                my_chips_bet.hidden = false;
+                my_chips_bet_img.hidden = false;
+                opp_chips_bet.hidden = false;
+                opp_chips_bet_img.hidden = false;
+                opp_chips_bet.innerHTML = parseInt(opp_bet);
+                my_chips_bet.innerHTML = parseInt(my_bet);
+                pot = opp_bet * 2;
+            }
             allInAnimation();
         }
 
@@ -1179,7 +1227,7 @@
         errorSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
 
-            if (data.issue == "reconnect") {
+            /*if (data.issue == "reconnect") {
                 updateUI();
             } else {
                 if (data.sentby == username) {
@@ -1198,7 +1246,7 @@
                     });
 
                 }
-            }
+            }*/
 
         }
 
