@@ -1059,7 +1059,7 @@
                 move_log.value += ( "Cards dealt & blinds set.\n" );
 
                 if (my_stack <= big_blind) {
-                    //alert("not_enough");
+                    alert("not_enough");
                     allInSocket.send(JSON.stringify({
                         "sentby":username,
                         "table_name": "{{room_name}}",
@@ -1166,7 +1166,7 @@
         allInSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
 
-            //alert(data.not_enough);
+            alert(data.not_enough);
             if (data.not_enough == "yes") {
                 if (data.sentby == username) {
                     my_bet = my_stack;
