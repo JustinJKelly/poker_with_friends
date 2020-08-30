@@ -2,6 +2,30 @@
     {% load static %}
     {% block content %}
 
+    <script>
+        if ((typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1)) {
+            location.href = "/poker/mobile_error";
+        }
+    </script>
+    {% if messages %}
+        {% for message in messages %}
+                {% if message.tags == "error" %}
+                    <center class="alert alert-{{ message.tags }}" style="font-size:20px; border-style:solid; color:red; background-color: lightgray;">  <!-- singular -->
+                        <a class="close" data-dismiss="alert">×</a>
+                        {{ message|safe }}
+                    </center>
+                {% else %}
+                    <center class="alert alert-{{ message.tags }}" style="font-size:20px; border-style:solid; color:green; background-color: lightgray;">  <!-- singular -->
+                        <a class="close" data-dismiss="alert">×</a>
+                        {{ message|safe }}
+                    </center>
+                {% endif %}
+                <br/>
+            {% endfor %}
+    {% endif %}
+    <br/>
+    <br/>
+
     <style> 
         input {
             width:25%;

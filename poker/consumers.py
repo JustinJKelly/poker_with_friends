@@ -4,7 +4,8 @@ import json
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 from channels_presence.models import Room
-from .models import Table
+from .models import Table, SavedTable
+from datetime import datetime
 from .poker_hand import checkHands
 from .deal_cards import deal_cards
 from time import sleep
@@ -169,6 +170,7 @@ class PlayerDecisionConsumer(WebsocketConsumer):
         pot = text_data_json['pot']
         table.pot_size = pot
         print("pot", pot)
+        table.date = datetime.now
         table.save()
         
         if decision == "bet":
@@ -404,7 +406,7 @@ class PlayerFoldedConsumer(WebsocketConsumer):
         river_card = text_data_json['river_card']
         current_dealer = text_data_json['current_dealer']
         #room_name = text_data_json['room_name']
-        print(sentby, ' ', sentby_cards, ' ', other_cards, ' ', other_username, ' ', flop_cards, ' ', turn_card, ' ', river_card, ' ', current_dealer)
+        #print(sentby, ' ', sentby_cards, ' ', other_cards, ' ', other_username, ' ', flop_cards, ' ', turn_card, ' ', river_card, ' ', current_dealer)
 
         # Send message to room group
         async_to_sync(self.channel_layer.group_send)(
@@ -472,7 +474,7 @@ class CheckHandWinnerConsumer(WebsocketConsumer):
         river_card = text_data_json['river_card']
         current_dealer = text_data_json['current_dealer']
         table_name = text_data_json['table_name']
-        print(sentby, ' ', sentby_cards, ' ', other_cards, ' ', other_username, ' ', flop_cards, ' ', turn_card, ' ', river_card, ' ', current_dealer)
+        #print(sentby, ' ', sentby_cards, ' ', other_cards, ' ', other_username, ' ', flop_cards, ' ', turn_card, ' ', river_card, ' ', current_dealer)
 
         # Send message to room group
         async_to_sync(self.channel_layer.group_send)(
@@ -512,13 +514,13 @@ class CheckHandWinnerConsumer(WebsocketConsumer):
         river_card = table.river_card
         
         hand_info = checkHands(sentby,sentby_cards,other_username,other_cards,flop_cards,turn_card,river_card)
-        print('hand info:',hand_info)
+        #print('hand info:',hand_info)
         current_dealer = event['current_dealer']
         
         winner = hand_info[0]
-        print(winner)
+        #print(winner)
         winning_hand = hand_info[1]
-        print(winning_hand)
+        #print(winning_hand)
     
             
         self.send(text_data=json.dumps({
@@ -604,6 +606,7 @@ class DealNewHandConsumer(WebsocketConsumer):
         table.turn_displayed = False
         table.river_displayed = False
         
+        table.date = datetime.now
         table.save()
 
         # Send message to room group
@@ -706,6 +709,51 @@ class AllInConsumer(WebsocketConsumer):
                 "sentby": sentby,
                 "not_enough": not_enough,
             }))
+            
+class DeleteGameConsumer(WebsocketConsumer):
+    def connect(self):
+        self.room_name = self.scope['url_route']['kwargs']['room_name']
+        self.room_group_name = 'deleteGame_%s' % self.room_name
+
+        async_to_sync(self.channel_layer.group_add)(
+            self.room_group_name,
+            self.channel_name
+        )
+
+        self.accept()
+    
+    def disconnect(self, close_code):
+        # Leave room group
+        async_to_sync(self.channel_layer.group_discard)(
+            self.room_group_name,
+            self.channel_name
+        )
+
+    # Receive message from WebSocket
+    def receive(self, text_data):
+        text_data_json = json.loads(text_data)
+        sentby = text_data_json['sentby']
+        room_name = text_data_json['table_name']
+
+        # Send message to room group
+        async_to_sync(self.channel_layer.group_send)(
+            self.room_group_name,
+            {
+                'type': 'deleteGame',
+                'sentby': sentby,
+                'room_name': room_name,
+            }
+        )
+
+    def deleteGame(self, event):
+        sentby = event['sentby']
+        table_name = event['room_name']
+        table = Table.objects.get(table_name=table_name)
+        
+        if sentby == table.dealer:
+            saved_table = SavedTable(table_name=table.table_name, player1=table.player1, player2=table.player2, date=table.date, access_code=table.access_code)
+            saved_table.save()
+            table.delete()
             
             
 class ErrorConsumer(WebsocketConsumer):

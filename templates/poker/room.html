@@ -1,6 +1,11 @@
 <!-- chat/templates/chat/room.html -->
 {% load static %}
 <!DOCTYPE html>
+<script>
+    if ((typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1)) {
+        location.href = "/poker/mobile_error";
+    }
+</script>
 <html>
 <head>
     <meta charset="utf-8"/>

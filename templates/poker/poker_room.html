@@ -1,6 +1,11 @@
 <!-- chat/templates/chat/room.html -->
 {% load static %}
 <!DOCTYPE html>
+<script>
+    if ((typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1)) {
+        location.href = "/poker/mobile_error";
+    }
+</script>
 <html>
 <head>
     <meta charset="utf-8"/>
@@ -128,9 +133,9 @@
             <b style="font-size:18px; color:white;position:fixed;left:780px;margin-top:180px;" id="pot">Pot:</b>
             <b style="font-size:18px; color:white;position:fixed;left:850px;margin-top:180px;" id="pot_size">0</b>
             <img hidden id="my_chips_bet_img" class="card_img" style="position:fixed;margin-top:150px;left:570px;width:40px;height:40px;" src="{% static 'img/poker_chips.png' %}"></img>
-            <b hidden id="my_chips_bet" style="position:fixed;left:620px;margin-top:150px;font-size:18px; color:black;">0</b>
-            <img hidden id="opp_chips_bet_img" style="position:fixed;left:1060px;margin-top:150px;width:40px;height:40px;" class="card_img" src="{% static 'img/poker_chips.png' %}"></img>
-            <b hidden id="opp_chips_bet" style="position:fixed;left:1040px;margin-top:150px;font-size:18px; color:black;">0</b>
+            <b hidden id="my_chips_bet" style="position:fixed;left:570px;margin-top:120px;font-size:18px; color:black;">0</b>
+            <img hidden id="opp_chips_bet_img" style="position:fixed;left:1040px;margin-top:150px;width:40px;height:40px;" class="card_img" src="{% static 'img/poker_chips.png' %}"></img>
+            <b hidden id="opp_chips_bet" style="position:fixed;left:1040px;margin-top:120px;font-size:18px; color:black;">0</b>
             <!--my poker info-->
             <div style="position:fixed; left:350px;top:250px;">
                 <p> {{username}} </p>
@@ -172,59 +177,67 @@
         const roomName = JSON.parse(document.getElementById('room-name').textContent);
 
         const chatSocket = new WebSocket(
-            'wss://'
+            'ws://'
             + window.location.host
-            + '/wss/chat/'
+            + '/ws/chat/'
             + roomName 
             + '/{{username}}/'
         );
 
         const newPlayerSocket = new WebSocket(
-            'wss://'
+            'ws://'
             + window.location.host
-            + '/wss/poker/'
+            + '/ws/poker/'
             + roomName
             + '/newUserConnected/{{username}}/'
         );
 
         const playerDecisionSocket = new WebSocket(
-            'wss://'
+            'ws://'
             + window.location.host
-            + '/wss/poker/'
+            + '/ws/poker/'
             + roomName
             + '/playerDecision/{{username}}/'
         );
 
         const handWinnerSocket = new WebSocket(
-            'wss://'
+            'ws://'
             + window.location.host
-            + '/wss/poker/'
+            + '/ws/poker/'
             + roomName
             + '/getHandWinner/'
         );
 
         const allInSocket = new WebSocket(
-            'wss://'
+            'ws://'
             + window.location.host
-            + '/wss/poker/'
+            + '/ws/poker/'
             + roomName
             + '/allIn/'
         );
 
         const dealNewHand = new WebSocket(
-            'wss://'
+            'ws://'
             + window.location.host
-            + '/wss/poker/'
+            + '/ws/poker/'
             + roomName
             + '/dealNewHand/'
         );
 
         const errorSocket = new WebSocket(
-            'wss://'
+            'ws://'
             + window.location.host
-            + '/wss/poker/'
+            + '/ws/poker/'
             + roomName
             + '/errorSocket/'
+        );
+
+        const deleteGameSocket = new WebSocket(
+            'ws://'
+            + window.location.host
+            + '/ws/poker/'
+            + roomName 
+            + '/deleteGame/'
         );
 
         window.onbeforeunload = function(){
@@ -887,7 +900,7 @@
             pot_size.innerHTML = pot;
         }
 
-        handWinnerSocket.onmessage = function(e) {
+        handWinnerSocket.onmessage = async function(e) {
 
             const data = JSON.parse(e.data);
             var skip = data.skip;
@@ -908,12 +921,6 @@
 
                 if (username == winner) {
                     opp_move_waiting.hidden = true;
-                    Swal.fire({
-                        title: "You win hand!",
-                        text: winner + " wins the hand with a " + winning_hand + "(" + pot + ")",
-                        confirmButtonText: "Go Back",
-                        timer: 6000
-                    });
 
                     move_log.value += "Hand " + hand + ": " + winner + " wins the hand with a " + winning_hand + "(" + pot + ")\n";
 
@@ -924,14 +931,34 @@
 
                     if ( opp_stack == 0 ) {
                         Swal.fire({
+                            title: "You win hand!",
+                            text: winner + " wins the hand with a " + winning_hand + "(" + pot + ")",
+                            confirmButtonText: "Go Back",
+                            timer: 4000
+                        });
+                        await sleep(4000);
+
+                        Swal.fire({
                             title: "You Won!",
-                            text: username + " wins the game",
+                            text: username + " wins the game. Go back to Home Page to make a new game.",
                             confirmButtonText: "Go Back",
                             timer: 6000
                         });
 
                         setButtonsHidden();
+
+                        deleteGameSocket.send(JSON.stringify({
+                            "sentby":"{{username}}",
+                            "table_name": "{{room_name}}",
+                        }));
                         return;
+                    } else {
+                        Swal.fire({
+                            title: "You win hand!",
+                            text: winner + " wins the hand with a " + winning_hand + "(" + pot + ")",
+                            confirmButtonText: "Go Back",
+                            timer: 5000
+                        });
                     }
                     
                 } else if (winner == "both") {
@@ -955,13 +982,6 @@
                 
                 } else {
                     opp_move_waiting.hidden = true;
-                    Swal.fire({
-                        title: "Opp wins hand!",
-                        text: winner + " wins the hand with a " + winning_hand + "(" + pot + ")\n",
-                        confirmButtonText: "Go Back",
-                        timer: 6000
-                    });
-
                     move_log.value += "<b>Hand " + hand + "</b>: " + winner + " wins the hand with a " + winning_hand + "(" + pot + ")\n";
 
                     opp_stack += pot;
@@ -970,14 +990,36 @@
 
                     if (my_stack == 0 ) {
                         Swal.fire({
-                            title: "You Lost!",
-                            text: username_opp + " wins the game",
+                            title: "Opp wins hand!",
+                            text: winner + " wins the hand with a " + winning_hand + "(" + pot + ")\n",
                             confirmButtonText: "Go Back",
-                            timer: 10000
+                            timer: 4000
                         });
+                        await sleep(4000);
+                        Swal.fire({
+                            title: "You Lost!",
+                            text: username_opp + " wins the game. Go back to Home Page to make a new game.",
+                            confirmButtonText: "Go Back",
+                            timer: 6000
+                        });
+
                         setButtonsHidden();
+
+                        deleteGameSocket.send(JSON.stringify({
+                            "sentby":"{{username}}",
+                            "table_name": "{{room_name}}",
+                        }));
+
                         return;
+                    } else {
+                        Swal.fire({
+                            title: "Opp wins hand!",
+                            text: winner + " wins the hand with a " + winning_hand + "(" + pot + ")\n",
+                            confirmButtonText: "Go Back",
+                            timer: 6000
+                        });
                     }
+
                 }
 
                 showCardsAudio.play();
@@ -1161,6 +1203,11 @@
                 }
             } 
             bet_amount_input.max = parseInt(my_stack) + my_bet;
+
+            if (opp_bet == bet_amount_input.max ) {
+                bet_button.hidden = true;
+                bet_amount_input.hidden = true;
+            }
         }
 
         allInSocket.onmessage = function(e) {

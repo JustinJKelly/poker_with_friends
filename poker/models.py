@@ -1,5 +1,5 @@
 from django.db import models
-from datetime import date
+from datetime import datetime
 from jsonfield import JSONField
 
 # Create your models here.
@@ -52,9 +52,19 @@ class Table(models.Model):
     flop_displayed = models.BooleanField(default=False)
     turn_displayed = models.BooleanField(default=False)
     river_displayed = models.BooleanField(default=False)
+    date = models.DateTimeField(default=datetime.now, blank=True)
     
     
     
+    def __str__(self):
+        return self.table_name
+    
+class SavedTable(models.Model):
+    table_name = models.CharField(max_length=25, default="Table")
+    player1 = models.CharField(max_length=25, default="none")
+    player2 = models.CharField(max_length=25, default="none")
+    date = models.DateTimeField(default=datetime.now, blank=True)
+    access_code = models.CharField(max_length=25,null=False, default="")
     
     def __str__(self):
         return self.table_name

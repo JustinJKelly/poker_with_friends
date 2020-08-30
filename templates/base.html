@@ -1,5 +1,11 @@
 {% load static %}
 <!doctype html>
+<script>
+    if ((typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1)) {
+        location.href = "/poker/mobile_error";
+    }
+</script>
+
 <html lang="en">
   <head>
     <!-- Required meta tags -->
@@ -20,10 +26,20 @@
             max-height:62px;
             max-width:62px;
         }
+
+        .Site {
+            display: flex;
+            min-height: 100vh;
+            flex-direction: column;
+        }
+
+        .Site-content {
+            flex: 1;
+        }
     </style>
 
   </head>
-  <body>
+  <body class="Site">
      <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo02" aria-controls="navbarTogglerDemo02" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -35,14 +51,39 @@
                     <a class="nav-link" href="{% url 'home' %}">Home <span class="sr-only">(current)</span></a>
                 </li>
 
-
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'join_table' %}"> Join a Table </a>
                 </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'make_table' %}"> Make a Table </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'submit_request' %}"> Submit a Bug/Request </a>
+                </li>
+
             </ul>
+            <button type="button" class="btn btn-primary btn-sm"><a style="color:white;" href="https://www.buymeacoffee.com/nbasimulator">Buy Me a Coffee</a></button>
         </div>
     </nav>
     {% block content %}
+        {% if messages %}
+            {% for message in messages %}
+                {% if message.tags == "error" %}
+                    <center class="alert alert-{{ message.tags }}" style="font-size:20px; border-style:solid; color:red; background-color: lightgray;">  <!-- singular -->
+                        <a class="close" data-dismiss="alert">×</a>
+                        {{ message|safe }}
+                    </center>
+                {% else %}
+                    <center class="alert alert-{{ message.tags }}" style="font-size:20px; border-style:solid; color:green; background-color: lightgray;">  <!-- singular -->
+                        <a class="close" data-dismiss="alert">×</a>
+                        {{ message|safe }}
+                    </center>
+                {% endif %}
+                <br/>
+            {% endfor %}
+        {% endif %}
         <center> <h1> Play Poker With Friends </h1> </center>
         <br/>
         <div class="container"> 
@@ -53,6 +94,9 @@
                 {% endfor %}
             </div>
         </div>
+        <br/>
+        <br/>
+        <center> <h3> There are currently <b>{{tables_remaining}}</b> tables(s) open. </h3> <center>
     {% endblock %}
   </body>
 </html>

@@ -1,26 +1,48 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseRedirect
-from .forms import MakeTableForm, JoinTableForm
+from .forms import MakeTableForm, JoinTableForm, SubmitRequestForm
 from django.contrib import messages
 from .models import Table
 from .deal_cards import deal_cards
 from django.urls import reverse
+import string
+import random
+from django.utils.html import escape
+from django.core.mail import EmailMessage, BadHeaderError, send_mail
+from django.conf import settings
 
 # Create your views here.
 def make_table(request):
     if request.method == 'POST':
         #print(request.POST)
         form = MakeTableForm(request.POST)
-        if form.is_valid():
-            print(request.POST)
+        tables = Table.objects.all()
+        
+        if len(tables) >= 5 and request.POST['table_name'].replace(" ", "") != "WeDemBois":
+            return HttpResponse("No tables available. Please check back later when rooms are available")
+        elif form.is_valid():
+            #print(request.POST)
+            if int(request.POST['big_blind']) % 2 != 0:
+                messages.add_message(request, messages.ERROR, 'Error in processing form data. Big blind must be an even number!')
+                form = MakeTableForm()
+                return render(request,"poker/make_table.html",{'form':form})
+            else:
+                new_table = Table(table_id=create_table_id(), table_name=request.POST['table_name'].replace(" ", ""), starting_stack=request.POST['starting_stack'].replace(" ", ""), big_blind=request.POST['big_blind'].replace(" ", ""), access_code=request.POST['access_code'].replace(" ", ""))
+                new_table.save()
+                messages.add_message(request, messages.SUCCESS, 'Table created!')
+                return redirect("/poker/join_table")
         else:
-            messages.add_message(request, messages.ERROR, 'Error in processing form data')
+            messages.add_message(request, messages.ERROR, 'Error in processing form data.')
             form = MakeTableForm()
             return render(request,"poker/make_table.html",{'form':form})
-        #return HttpResponse("Thanks")
+        return HttpResponse("Thanks")
     
     form = MakeTableForm()
     return render(request, "poker/make_table.html", {"form": form})
+
+def create_table_id():
+    letters = string.ascii_letters
+    return ''.join(random.choice(letters) for i in range(16))
 
 # Create your views here.
 def join_table(request):
@@ -30,18 +52,19 @@ def join_table(request):
             print(request.POST['chosen_table'])
             #print(request.POST['access_code'])
             print(request.POST['username'])
+            username = request.POST['username'].replace(" ", "")
             table = Table.objects.get(table_id=request.POST['chosen_table'])
-            if request.POST['access_code'] == table.access_code :
+            if request.POST['access_code'] == table.access_code:
                 if table.player1 == "none": 
-                    table.player1 = request.POST['username']
+                    table.player1 = username
                     table.save()
                 elif table.player2 == "none": 
-                    table.player2 = request.POST['username']
+                    table.player2 = username
                     table.save()
                 elif table.error:
-                    if table.player1 == request.POST['username'] or table.player2 == request.POST['username']:
+                    if table.player1 == username or table.player2 == username:
                         redirect = HttpResponseRedirect("/poker/table/"+table.table_name)
-                        request.session['username'] = request.POST['username']
+                        request.session['username'] = username
                         request.session['table_id'] = request.POST['chosen_table']
                         return redirect
                     else:
@@ -50,11 +73,11 @@ def join_table(request):
                 else:
                     return HttpResponse("Table full")
                 redirect = HttpResponseRedirect("/poker/table/"+table.table_name)
-                request.session['username'] = request.POST['username']
+                request.session['username'] = username
                 request.session['table_id'] = request.POST['chosen_table']
                 return redirect
             else:
-                messages.add_message(request, messages.ERROR, 'Error in processing form data')
+                messages.add_message(request, messages.ERROR, 'Error in processing form data: Wrong access code!')
                 form = JoinTableForm()
                 return render(request,"poker/join_table.html",{'form':form})
         else:
@@ -108,6 +131,9 @@ def room_protected(request,room_name,table_id,):
     context = {}
     if 'username' in request.session:
         username = request.session.get('username')
+        context['username'] = username
+    else:
+        context['username'] = "username"
     
     if table.player2 == "none":
         cards = deal_cards(2)
@@ -133,7 +159,6 @@ def room_protected(request,room_name,table_id,):
     
     
     context['room_name'] = room_name
-    context['username'] = username
     if table.player1 != "none" and table.player2 != "none":
         context["game_on"] = "game_on"
         print("GAME ON")
@@ -203,3 +228,30 @@ def room_protected(request,room_name,table_id,):
 
 def path_does_not_exist(request):
     return render(request,"error_request.html")
+
+def mobile_error(request):
+    return render(request,"error_mobile.html")
+
+def submit_request(request):
+    if request.method == 'POST':
+        #print(request.POST)
+        form = SubmitRequestForm(request.POST)
+        
+        if form.is_valid():
+            #print(request.POST)
+            print("here")
+            try:
+                #msg = EmailMessage('Request Callback', 'Here is the message.', to=['jkelly92@my.smccd.edu'])
+                #msg.send()
+                messages.add_message(request, messages.SUCCESS, 'Thanks for your submittion!')
+                send_mail( escape(form.cleaned_data['subject']), escape(form.cleaned_data['from_email']) + "\n\n" + escape(form.cleaned_data['message']), 'letsplaypokermessages@gmail.com', ['letsplaypokermessages@gmail.com'], fail_silently=False)
+            except BadHeaderError:
+                return HttpResponse('Invalid header found.')
+            return HttpResponseRedirect("/")
+        else:
+            messages.add_message(request, messages.ERROR, 'Error in processing form data.')
+            form = SubmitRequestForm()
+            return render(request,"poker/request_submittion.html",{'form':form})
+    
+    form = SubmitRequestForm()
+    return render(request, "poker/request_submittion.html", {"form": form})
