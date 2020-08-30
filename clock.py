@@ -1,6 +1,11 @@
+import django
 from apscheduler.schedulers.blocking import BlockingScheduler
 from poker.models import Table, SavedTable
 from datetime import datetime
+
+import os
+import sys
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'poker_with_friends.settings')
 
 sched = BlockingScheduler()
 
