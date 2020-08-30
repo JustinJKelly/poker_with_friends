@@ -6,6 +6,7 @@ from datetime import datetime
 import os
 import sys
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'poker_with_friends.settings')
+django.setup()
 
 sched = BlockingScheduler()
 
