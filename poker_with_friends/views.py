@@ -2,11 +2,14 @@ from django.shortcuts import redirect, render, reverse
 from django.http import HttpResponse
 from django.contrib import messages
 import random
+from poker.models import Table
 
 # Create your views here.
 def home(request):
     context = {}
     context["cards"] = get_cards()
+    tables = Table.objects.all()
+    context["tables_remaining"] = max(5 - len(tables), 0)
     return render(request, 'base.html', context)
 
 def get_cards():
