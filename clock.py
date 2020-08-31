@@ -17,7 +17,7 @@ def timed_job():
         time1 = datetime.now()
         time2 = table.date
         elapsedTime = time2 - time1
-        print(time1 + "  ", time2, ":  ", elapsedTime, "\n\n")
+        print(time1, "  ", time2, ":  ", elapsedTime, "\n\n")
         
         if elapsedTime.total_seconds() > 3600 and (table.player1 == "none" or table.player2 == "none"):
             table.delete()
