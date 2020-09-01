@@ -18,12 +18,12 @@ STATIC_DIR = os.path.join(BASE_DIR, 'static')
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ['SECRET_KEY']
+SECRET_KEY = '4esd&-jg!x=j0t3$3&fccu5$#m8=j1bs6&%l06i^6*it4^o_6v'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = bool(int(os.environ.get("DEBUG")))
+DEBUG = True
 
-ALLOWED_HOSTS = ['.letsplaypoker.org','.herokuapp.com','127.0.0.1','localhost']
+#ALLOWED_HOSTS = ['.letsplaypoker.org','.herokuapp.com','127.0.0.1','localhost']
 
 
 # Application definition
@@ -50,8 +50,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SECURE_SSL_REDIRECT = True
+#SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+#SECURE_SSL_REDIRECT = True
 
 ROOT_URLCONF = 'poker_with_friends.urls'
 
@@ -73,7 +73,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'poker_with_friends.wsgi.application'
 ASGI_APPLICATION = "poker_with_friends.routing.application"
-if bool(int(os.environ.get("DEBUG"))) == False:
+'''if bool(int(os.environ.get("DEBUG"))) == False:
     CHANNEL_LAYERS = {
         'default': {
             'BACKEND': 'channels_redis.core.RedisChannelLayer',
@@ -82,15 +82,15 @@ if bool(int(os.environ.get("DEBUG"))) == False:
             },
         },
     }
-else:
-    CHANNEL_LAYERS = {
-        'default': {
-            'BACKEND': 'channels_redis.core.RedisChannelLayer',
-            'CONFIG': {
-                "hosts": [('127.0.0.1', 6379)],
-            },
+else:'''
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
         },
-    }
+    },
+}
 
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
@@ -152,11 +152,11 @@ EMAIL_HOST_PASSWORD = '3R-4NsuADXT&/8b5'
 STATIC_URL = '/static/'
 STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-MEDIA_URL = '/img/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'static/img')
+#MEDIA_URL = '/img/'
+#MEDIA_ROOT = os.path.join(BASE_DIR, 'static/img')
 # Activate Django-Heroku.
 #django_heroku.settings(locals())
 
 # Simplified static file serving.
 # https://warehouse.python.org/project/whitenoise/
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+#STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
