@@ -26,6 +26,14 @@ def make_table(request):
                 messages.add_message(request, messages.ERROR, 'Error in processing form data. Big blind must be an even number!')
                 form = MakeTableForm()
                 return render(request,"poker/make_table.html",{'form':form})
+            elif len(request.POST['table_name']) == 0 or len(request.POST['access_code']) == 0:
+                messages.add_message(request, messages.ERROR, 'Error in processing form data. Table name and access code can not be empty!')
+                form = MakeTableForm()
+                return render(request,"poker/make_table.html",{'form':form})
+            elif " " in request.POST['table_name'] or " " in request.POST['access_code']:
+                messages.add_message(request, messages.ERROR, 'Error in processing form data. Table name and access code can not have spaces!')
+                form = MakeTableForm()
+                return render(request,"poker/make_table.html",{'form':form})
             else:
                 new_table = Table(table_id=create_table_id(), table_name=request.POST['table_name'].replace(" ", ""), starting_stack=request.POST['starting_stack'].replace(" ", ""), big_blind=request.POST['big_blind'].replace(" ", ""), access_code=request.POST['access_code'].replace(" ", ""))
                 new_table.save()
@@ -59,7 +67,11 @@ def join_table(request):
                     table.player1 = username
                     table.save()
                 elif table.player2 == "none": 
-                    table.player2 = username
+                    if table.player1 == username:
+                        username = username + "2"
+                        table.player2 = username
+                    else:
+                        table.player2 = username 
                     table.save()
                 elif table.error:
                     if table.player1 == username or table.player2 == username:

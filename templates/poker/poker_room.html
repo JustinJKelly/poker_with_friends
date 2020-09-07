@@ -1204,10 +1204,10 @@
             } 
             bet_amount_input.max = parseInt(my_stack) + my_bet;
 
-            if (opp_bet >= bet_amount_input.max ) {
+            if (opp_bet >= bet_amount_input.max || opp_stack == 0) {
                 bet_button.hidden = true;
                 bet_amount_input.hidden = true;
-            }
+            } 
         }
 
         allInSocket.onmessage = function(e) {
