@@ -339,10 +339,8 @@
         //start first hand and set blinds for first hand
         newPlayerSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
-            alert("here " + data.game_on);
             //if all the players are in the room, start the game
             if (data.game_on == "yes") {
-                alert("here2");
                 //get rid of waiting screen
                 body.style.backgroundImage = "none";
                 game_on.hidden = false;
@@ -372,7 +370,6 @@
         //when new player, check if app players are there
         newPlayerSocket.onopen = function() {
             if ("{{game_on}}" == "game_on") {
-                alert("Game on");
                 newPlayerSocket.send(JSON.stringify({
                     "game_on":"game_on",
                     "username": username,
