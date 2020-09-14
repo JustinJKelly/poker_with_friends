@@ -14,7 +14,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'poker_with_friends.settings')
 
 application = get_asgi_application()'''
 
-#prodcution
+#production
 import os
 #import django
 #from channels.routing import get_default_application

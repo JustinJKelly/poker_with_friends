@@ -5,10 +5,12 @@ from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 from channels_presence.models import Room
 from .models import Table, SavedTable
-from datetime import datetime
 from .poker_hand import checkHands
 from .deal_cards import deal_cards
+from datetime import datetime
 from time import sleep
+from django.utils import timezone
+import pytz
 
 #NEEDED DIFFERENT GROUP NAMES
 class ChatConsumer(WebsocketConsumer):
@@ -99,17 +101,17 @@ class NewPlayerConsumer(WebsocketConsumer):
         username = event['username']
         users = Room.objects.get(channel_name="poker_game").get_users()
         print("users:",users)
-        if (len(users) == 2):
-            self.send(text_data=json.dumps({
-                'username': username,
-                'game_on':'yes'
-            }))
-        else:
+        #if (len(users) == 2):
+        self.send(text_data=json.dumps({
+            'username': username,
+            'game_on':'yes'
+        }))
+        '''else:
             # Send message to room group
             self.send(text_data=json.dumps({
                 'username': username,
                 'game_on':'no'
-            }))
+            }))'''
             
 
 class PlayerDecisionConsumer(WebsocketConsumer):
@@ -170,7 +172,7 @@ class PlayerDecisionConsumer(WebsocketConsumer):
         pot = text_data_json['pot']
         table.pot_size = pot
         print("pot", pot)
-        table.date = datetime.now
+        table.date = datetime.now(tz=timezone.utc)
         table.save()
         
         if decision == "bet":
@@ -606,7 +608,7 @@ class DealNewHandConsumer(WebsocketConsumer):
         table.turn_displayed = False
         table.river_displayed = False
         
-        table.date = datetime.now
+        table.date = datetime.now(tz=timezone.utc)
         table.save()
 
         # Send message to room group
@@ -748,12 +750,15 @@ class DeleteGameConsumer(WebsocketConsumer):
     def deleteGame(self, event):
         sentby = event['sentby']
         table_name = event['room_name']
-        table = Table.objects.get(table_name=table_name)
+        tables = Table.objects.filter(table_name=table_name)
+        #table = Table.objects.get(table_name=table_name)
         
-        if sentby == table.dealer:
-            saved_table = SavedTable(table_name=table.table_name, player1=table.player1, player2=table.player2, date=table.date, access_code=table.access_code)
-            saved_table.save()
-            table.delete()
+        if len(tables) > 0:
+            table = tables[0]
+            if sentby == table.dealer:
+                saved_table = SavedTable(table_name=table.table_name, player1=table.player1, player2=table.player2, date=table.date, access_code=table.access_code)
+                saved_table.save()
+                table.delete()
             
             
 class ErrorConsumer(WebsocketConsumer):

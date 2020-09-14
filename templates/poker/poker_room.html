@@ -224,13 +224,13 @@
             + '/dealNewHand/'
         );
 
-        const errorSocket = new WebSocket(
+        /*const errorSocket = new WebSocket(
             'ws://'
             + window.location.host
             + '/ws/poker/'
             + roomName
             + '/errorSocket/'
-        );
+        );*/
 
         const deleteGameSocket = new WebSocket(
             'ws://'
@@ -339,9 +339,10 @@
         //start first hand and set blinds for first hand
         newPlayerSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
-            
+            alert("here " + data.game_on);
             //if all the players are in the room, start the game
             if (data.game_on == "yes") {
+                alert("here2");
                 //get rid of waiting screen
                 body.style.backgroundImage = "none";
                 game_on.hidden = false;
@@ -371,7 +372,7 @@
         //when new player, check if app players are there
         newPlayerSocket.onopen = function() {
             if ("{{game_on}}" == "game_on") {
-               ////alert("Game on");
+                alert("Game on");
                 newPlayerSocket.send(JSON.stringify({
                     "game_on":"game_on",
                     "username": username,
@@ -587,7 +588,7 @@
                     my_stack += pot;
                     my_stack_html.innerHTML = my_stack;
                     Swal.fire({
-                        title: "Opp folds!",
+                        title: "Opponent folds!",
                         text: username + " wins the hand(" + pot + ")",
                         confirmButtonText: "Go Back",
                         timer: 6000
@@ -1241,40 +1242,40 @@
 
         allInSocket.onclose = function(e) {
             console.error('allInSocket  closed unexpectedly');
-            errorSocket.send(JSON.stringify({
+            /*errorSocket.send(JSON.stringify({
                 "sentby":username,
                 "table_name": "{{room_name}}",
-            }));
+            }));*/
         };
 
         handWinnerSocket.onclose = function(e) {
             console.error('handWinnerSocket closed unexpectedly');
-            errorSocket.send(JSON.stringify({
+            /*errorSocket.send(JSON.stringify({
                 "sentby":username,
                 "table_name": "{{room_name}}",
-            }));
+            }));*/
         };
 
         newPlayerSocket.onclose = function(e) {
             console.error('newPlayerSocket closed unexpectedly');
-            errorSocket.send(JSON.stringify({
+            /*errorSocket.send(JSON.stringify({
                 "sentby":username,
                 "table_name": "{{room_name}}",
-            }));
+            }));*/
         };
 
         playerDecisionSocket.onclose = function(e) {
             console.error('playerDecisionSocket closed unexpectedly');
-            errorSocket.send(JSON.stringify({
+            /*errorSocket.send(JSON.stringify({
                 "sentby":username,
                 "table_name": "{{room_name}}",
-            }));
+            }));*/
         };
 
-        errorSocket.onmessage = function(e) {
+       /* errorSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
 
-            /*if (data.issue == "reconnect") {
+            if (data.issue == "reconnect") {
                 updateUI();
             } else {
                 if (data.sentby == username) {
@@ -1293,9 +1294,9 @@
                     });
 
                 }
-            }*/
+            }
 
-        }
+        }*/
 
         function updateUI() {
             if ("{{flop_displayed}}") {

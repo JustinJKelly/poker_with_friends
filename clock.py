@@ -13,6 +13,7 @@ sched = BlockingScheduler()
 @sched.scheduled_job('interval', minutes=1)
 def timed_job():
     print(datetime.now() + "\n", "Running cronjob...\n\n")
+    print(Table.objects.all())
     for table in Table.objects.all():
         time1 = datetime.now()
         time2 = table.date
@@ -20,14 +21,14 @@ def timed_job():
         print(time1, "  ", time2, ":  ", elapsedTime, "\n\n")
         
         if elapsedTime.total_seconds() > 3600 and (table.player1 == "none" or table.player2 == "none"):
-            table.delete()
             saved_table = SavedTable(table_name=table.table_name, player1=table.player1, player2=table.player2, date=table.date, access_code=table.access_code)
             saved_table.save()
+            table.delete()
             
         elif elapsedTime.total_seconds() > 3600:
-            table.delete()
             saved_table = SavedTable(table_name=table.table_name, player1=table.player1, player2=table.player2, date=table.date, access_code=table.access_code)
             saved_table.save()
+            table.delete()
 
 '''@sched.scheduled_job('cron', day_of_week='mon-fri', hour=17)
 def scheduled_job():
