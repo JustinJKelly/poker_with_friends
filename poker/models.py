@@ -52,7 +52,7 @@ class Table(models.Model):
     flop_displayed = models.BooleanField(default=False)
     turn_displayed = models.BooleanField(default=False)
     river_displayed = models.BooleanField(default=False)
-    date = models.DateTimeField(default=datetime.now, blank=True)
+    date = models.DateTimeField(auto_now_add=True, blank=True)
     
     
     

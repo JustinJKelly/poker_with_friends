@@ -6,7 +6,6 @@ https://docs.djangoproject.com/en/3.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.0/ref/settings/
 """
-
 import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -42,6 +41,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -71,8 +71,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'poker_with_friends.wsgi.application'
 ASGI_APPLICATION = "poker_with_friends.routing.application"
+WSGI_APPLICATION = 'poker_with_friends.wsgi.application'
 if bool(int(os.environ.get("DEBUG"))) == False:
     CHANNEL_LAYERS = {
         'default': {
@@ -97,8 +97,12 @@ else:
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.environ['database'],
+        'USER': os.environ['name'],
+        'PASSWORD': os.environ['password'],
+        'HOST': '',
+        'PORT': '',
     }
 }
 
@@ -136,7 +140,6 @@ USE_L10N = True
 USE_TZ = True
 
 
-#DEFAULT_FROM_EMAIL = 'workorbit@gmail.com'
 DEFAULT_FROM_EMAIL = 'letsplaypokermessages@gmail.com'
 SERVER_EMAIL = 'letsplaypokermessages@gmail.com'
 EMAIL_USE_TLS = True
@@ -154,8 +157,6 @@ STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 MEDIA_URL = '/img/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'static/img')
-# Activate Django-Heroku.
-#django_heroku.settings(locals())
 
 # Simplified static file serving.
 # https://warehouse.python.org/project/whitenoise/

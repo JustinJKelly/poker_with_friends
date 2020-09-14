@@ -10,6 +10,9 @@ import random
 from django.utils.html import escape
 from django.core.mail import EmailMessage, BadHeaderError, send_mail
 from django.conf import settings
+from django.utils import timezone
+import pytz
+from datetime import datetime
 
 # Create your views here.
 def make_table(request):
@@ -26,10 +29,24 @@ def make_table(request):
                 messages.add_message(request, messages.ERROR, 'Error in processing form data. Big blind must be an even number!')
                 form = MakeTableForm()
                 return render(request,"poker/make_table.html",{'form':form})
+            elif len(request.POST['table_name']) == 0 or len(request.POST['access_code']) == 0:
+                messages.add_message(request, messages.ERROR, 'Error in processing form data. Table name and access code can not be empty!')
+                form = MakeTableForm()
+                return render(request,"poker/make_table.html",{'form':form})
+            elif " " in request.POST['table_name'] or " " in request.POST['access_code']:
+                messages.add_message(request, messages.ERROR, 'Error in processing form data. Table name and access code can not have spaces!')
+                form = MakeTableForm()
+                return render(request,"poker/make_table.html",{'form':form})
             else:
-                new_table = Table(table_id=create_table_id(), table_name=request.POST['table_name'].replace(" ", ""), starting_stack=request.POST['starting_stack'].replace(" ", ""), big_blind=request.POST['big_blind'].replace(" ", ""), access_code=request.POST['access_code'].replace(" ", ""))
+                new_table_name = request.POST['table_name'].replace(" ", "")
+                tables = Table.objects.filter(table_name=new_table_name)
+
+                if len(tables) > 0:
+                    #print(len(tables))
+                    new_table_name = new_table_name + "_" + create_table_string()
+                new_table = Table(date=datetime.now(tz=timezone.utc), table_id=create_table_id(), table_name=new_table_name, starting_stack=request.POST['starting_stack'].replace(" ", ""), big_blind=request.POST['big_blind'].replace(" ", ""), access_code=request.POST['access_code'].replace(" ", ""))
                 new_table.save()
-                messages.add_message(request, messages.SUCCESS, 'Table created!')
+                messages.add_message(request, messages.SUCCESS, 'Table created! Table name is ' + new_table_name)
                 return redirect("/poker/join_table")
         else:
             messages.add_message(request, messages.ERROR, 'Error in processing form data.')
@@ -44,14 +61,18 @@ def create_table_id():
     letters = string.ascii_letters
     return ''.join(random.choice(letters) for i in range(16))
 
+def create_table_string():
+    letters = string.ascii_letters
+    return ''.join(random.choice(letters) for i in range(4))
+
 # Create your views here.
 def join_table(request):
     if request.method == 'POST':
         form = JoinTableForm(request.POST)
         if form.is_valid():
-            print(request.POST['chosen_table'])
+            #print(request.POST['chosen_table'])
             #print(request.POST['access_code'])
-            print(request.POST['username'])
+            #print(request.POST['username'])
             username = request.POST['username'].replace(" ", "")
             table = Table.objects.get(table_id=request.POST['chosen_table'])
             if request.POST['access_code'] == table.access_code:
@@ -59,7 +80,11 @@ def join_table(request):
                     table.player1 = username
                     table.save()
                 elif table.player2 == "none": 
-                    table.player2 = username
+                    if table.player1 == username:
+                        username = username + "2"
+                        table.player2 = username
+                    else:
+                        table.player2 = username 
                     table.save()
                 elif table.error:
                     if table.player1 == username or table.player2 == username:
@@ -127,7 +152,7 @@ def room(request, room_name):
 
 def room_protected(request,room_name,table_id,):
     table = Table.objects.get(table_id=table_id)
-    print("look here",table.table_name)
+    #print("look here",table.table_name)
     context = {}
     if 'username' in request.session:
         username = request.session.get('username')
@@ -139,7 +164,7 @@ def room_protected(request,room_name,table_id,):
         cards = deal_cards(2)
         table.dealer = username
     
-        print(cards, " ")
+        #print(cards, " ")
         
         table.player1_card1 = cards[0]
         table.player1_card2 = cards[1]
@@ -239,7 +264,7 @@ def submit_request(request):
         
         if form.is_valid():
             #print(request.POST)
-            print("here")
+            #print("here")
             try:
                 #msg = EmailMessage('Request Callback', 'Here is the message.', to=['jkelly92@my.smccd.edu'])
                 #msg.send()

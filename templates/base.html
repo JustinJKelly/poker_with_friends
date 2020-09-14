@@ -84,7 +84,7 @@
                 <br/>
             {% endfor %}
         {% endif %}
-        <center> <h1> Play Poker With Friends </h1> </center>
+        <center> <h1> Play Online Heads-up Poker </h1> </center>
         <br/>
         <div class="container"> 
             <div class="row">
@@ -96,7 +96,57 @@
         </div>
         <br/>
         <br/>
-        <center> <h3> There are currently <b>{{tables_remaining}}</b> tables(s) open. </h3> <center>
+        <center> <h3> There are currently <b>{{tables_remaining}}</b> table(s) open. </h3> </center>
+        <br/>
+        <br/>
+        <div style="font-size:20px;" class="container">
+            <center> <h3 style="font-size:30px;"> (<b style="color:red;">Please read before starting to play</b>) </h3> </center>
+            <br/>
+            <ol type = "1">
+                <li>
+                First off, this website is meant for non-mobile devices and will not work on mobile devices.
+                </li>
+                <li>
+                This is a website where you can play online Heads-Up Texas Hold'em against whomever you would 
+                like. 
+                </li>
+                <li>
+                To start, go to <i>Make a Table</i> tab and create a game specifying the starting chip 
+                amount, big blind, table name, and an access code to enter the table. 
+                </li>
+                <li>
+                The table name and access code are used for you and the person you will be playing to enter 
+                that specific table, so choose them accordingly. 
+                </li>
+                <li>
+                This website uses no authentication so you will not be able to re-enter games 
+                once you have entered; meaning if you leave the game after entering it, it will no longer be 
+                usuable! 
+                </li>
+                <li>This also means that anyone can access your table if they know the access code so make it 
+                unique! 
+                <li>Once you have created the table go to <i>Join a Table</i> tab and select your table from the 
+                dropdown menu, pick a username, and enter the access code for that table. 
+                </li>
+                <li>
+                Assuming everything was entered correctly, this will bring you to a loading screen; which will 
+                go away once both people have joined. 
+                </li>
+                <li>
+                The UI is pretty simple; there is a bet, call, check, and fold button in which the buttons will be 
+                shown as long as that particular move is available. After each hand there is around an 8 second pause 
+                until the next hand is dealt.
+                </li>
+                <li>
+                If you have any issues with any interface, find any bugs, have a request, or anything else you would 
+                like me to know in regards to the website; please send me a message with the <i>Submit a Bug/Request</i>
+                </li>
+                <li>
+                The server that hosts the website/games costs money which I pay myself. If you like the site, please 
+                consider sending some money to pay for the costs using the <i>Buy Me a Coffee</i> link
+                </li>
+            </ol>  
+        </div>
     {% endblock %}
   </body>
 </html>

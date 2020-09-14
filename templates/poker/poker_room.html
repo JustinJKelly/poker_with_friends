@@ -224,13 +224,13 @@
             + '/dealNewHand/'
         );
 
-        const errorSocket = new WebSocket(
+        /*const errorSocket = new WebSocket(
             'wss://'
             + window.location.host
             + '/wss/poker/'
             + roomName
             + '/errorSocket/'
-        );
+        );*/
 
         const deleteGameSocket = new WebSocket(
             'wss://'
@@ -1241,40 +1241,40 @@
 
         allInSocket.onclose = function(e) {
             console.error('allInSocket  closed unexpectedly');
-            errorSocket.send(JSON.stringify({
+            /*errorSocket.send(JSON.stringify({
                 "sentby":username,
                 "table_name": "{{room_name}}",
-            }));
+            }));*/
         };
 
         handWinnerSocket.onclose = function(e) {
             console.error('handWinnerSocket closed unexpectedly');
-            errorSocket.send(JSON.stringify({
+            /*errorSocket.send(JSON.stringify({
                 "sentby":username,
                 "table_name": "{{room_name}}",
-            }));
+            }));*/
         };
 
         newPlayerSocket.onclose = function(e) {
             console.error('newPlayerSocket closed unexpectedly');
-            errorSocket.send(JSON.stringify({
+            /*errorSocket.send(JSON.stringify({
                 "sentby":username,
                 "table_name": "{{room_name}}",
-            }));
+            }));*/
         };
 
         playerDecisionSocket.onclose = function(e) {
             console.error('playerDecisionSocket closed unexpectedly');
-            errorSocket.send(JSON.stringify({
+            /*errorSocket.send(JSON.stringify({
                 "sentby":username,
                 "table_name": "{{room_name}}",
-            }));
+            }));*/
         };
 
-        errorSocket.onmessage = function(e) {
+        /*errorSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
 
-            /*if (data.issue == "reconnect") {
+            if (data.issue == "reconnect") {
                 updateUI();
             } else {
                 if (data.sentby == username) {
@@ -1293,9 +1293,9 @@
                     });
 
                 }
-            }*/
+            }
 
-        }
+        }*/
 
         function updateUI() {
             if ("{{flop_displayed}}") {
