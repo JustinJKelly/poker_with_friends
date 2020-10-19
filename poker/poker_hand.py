@@ -154,16 +154,18 @@ def findWinner(player1_hand,player2_hand,player1,player2):
         return ["both",player2_hand[0],player1_hand,player2_hand]
     
     elif player1_hand[0] == "straight" or player1_hand[0] == "straight_flush" or player1_hand[0] == "flush":
-        n1 = player1_hand[1].find("_")
-        sub1 = player1_hand[1][0:n1]
         
-        n2 = player2_hand[1].find("_")
-        sub2 = player2_hand[1][0:n2]
-        
-        if card_highs.index(sub1) > card_highs.index(sub2):
-            return [player1,player1_hand[0],player1_hand,player2_hand]
-        elif card_highs.index(sub1) < card_highs.index(sub2):
-            return [player2,player2_hand[0],player1_hand,player2_hand]
+        for i in range(1, len(player1_hand)):
+            n1 = player1_hand[i].find("_")
+            sub1 = player1_hand[i][0:n1]
+            
+            n2 = player2_hand[i].find("_")
+            sub2 = player2_hand[i][0:n2]
+            
+            if card_highs.index(sub1) > card_highs.index(sub2):
+                return [player1,player1_hand[0],player1_hand,player2_hand]
+            elif card_highs.index(sub1) < card_highs.index(sub2):
+                return [player2,player2_hand[0],player1_hand,player2_hand]
         
         return ["both",player2_hand[0],player1_hand,player2_hand]
     
@@ -572,4 +574,4 @@ def checkHighCard(cards_left):
 
 if __name__ == "__main__":
     #print(getHand(['3_of_clubs', '7_of_spades','queen_of_diamonds','10_of_spades', 'jack_of_spades', '4_of_hearts', '9_of_spades']))
-    print(checkHands("player1",['7_of_clubs', '8_of_spades'],"player2",['7_of_clubs','9_of_spades'],['ace_of_hearts', '2_of_diamonds', '7_of_hearts'],"4_of_diamonds","7_of_spades"))
+    print(checkHands("player1",['2_of_clubs', '8_of_diamonds'],"player2",['3_of_clubs','9_of_spades'],['ace_of_clubs', '2_of_diamonds', '8_of_clubs'],"4_of_clubs","7_of_clubs"))
