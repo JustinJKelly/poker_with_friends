@@ -140,13 +140,13 @@ USE_L10N = True
 USE_TZ = True
 
 
-DEFAULT_FROM_EMAIL = 'letsplaypokermessages@gmail.com'
-SERVER_EMAIL = 'letsplaypokermessages@gmail.com'
+DEFAULT_FROM_EMAIL = os.environ['email']
+SERVER_EMAIL = os.environ['email']
 EMAIL_USE_TLS = True
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_HOST_USER = 'letsplaypokermessages@gmail.com'
-EMAIL_HOST_PASSWORD = '3R-4NsuADXT&/8b5'
+EMAIL_HOST = os.environ['email_host']
+EMAIL_PORT = os.environ['email_port']
+EMAIL_HOST_USER = os.environ['email']
+EMAIL_HOST_PASSWORD = os.environ['email_password']
 
 
 # Static files (CSS, JavaScript, Images)
